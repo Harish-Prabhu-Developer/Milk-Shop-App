@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "types": [
+      "react-native"
+    ],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@assets/*": ["src/assets/*"],
+      "@Components/*": ["src/Components/*"],
+      "@Constants/*": ["src/Constants/*"], 
+      "@Screens/*":["src/Screens/*"],
+      "@Utils/*": ["src/Utils/*"],
+      "@Navigation/*":["src/Navigation/*"],
+      "@Redux/*":["src/Redux/*"],
+
+    }
+  },
+  "extends": "@react-native/typescript-config"
+}
