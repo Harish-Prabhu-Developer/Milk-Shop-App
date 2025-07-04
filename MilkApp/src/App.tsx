@@ -11,20 +11,15 @@ import RegisterScreen from "@Screens/RegisterScreen";
 import ProductDetailsScreen from "./Screens/ProductDetailsScreen";
 import Store from "./Redux/Store";
 import { Provider } from "react-redux";
+import { CartProduct, Product } from "@Utils/@types/Products";
+import CartScreen from "@Screens/CartScreen";
 
 type RootStackParamList = {
   LoginScreen: undefined;
   RegisterScreen: undefined;
-  ProductDetailsScreen: {
-  id: string;
-  name: string;
-  price: number;
-  unit: string;
-  description: string;
-  nutrition: string;
-  image: any;
-}
+  ProductDetailsScreen: Product;
   TabBar: undefined;
+  CartScreen: undefined;
 
 };
 const Stack = createStackNavigator<RootStackParamList>();
@@ -56,6 +51,7 @@ const App = () => {
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
         <Stack.Screen name="ProductDetailsScreen" component={ProductDetailsScreen} />
         <Stack.Screen name="TabBar" component={TabBar} />
+        <Stack.Screen name="CartScreen" component={CartScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
  </Provider>

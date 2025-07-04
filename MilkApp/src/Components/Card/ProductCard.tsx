@@ -1,25 +1,28 @@
 // ProductCard.tsx
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
+import IncreaseButton from '../Input/IncreaseButton';
 
 interface ProductCardProps {
   name: string;
   price: number;
   image: any;
-  onAddToCart: (quantity: number) => void;
+  unit: string;
+  description?: string;
+  nutrition?: string;
+  quantity?: number;
+  onAddToCart: (qty: number) => void;
 }
 
-const ProductCard = ({ name, price, image, onAddToCart }: ProductCardProps) => {
-  const [quantity, setQuantity] = useState(1);
+const ProductCard = ({ name, price, image,quantity,unit,description,nutrition, onAddToCart }: ProductCardProps) => {
+  const [Quantity, setQuantity] = useState(quantity || 1); // Default quantity to 1 if not provided
 
-  const increase = () => setQuantity(prev => prev + 1);
-  const decrease = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
   return (
     <View className="bg-white rounded-2xl shadow-2xl w-[170px] mx-1 my-2 border border-primary">
       {/* Product Image */}
       <View className="h-32 bg-blue-50 rounded-t-2xl overflow-hidden">
-        <Image source={image} className="w-full h-full" resizeMode="cover" />
+        <Image source={image} className="w-full h-full m-2" resizeMode="cover" />
       </View>
 
       {/* Content */}
@@ -27,34 +30,22 @@ const ProductCard = ({ name, price, image, onAddToCart }: ProductCardProps) => {
         <Text numberOfLines={1} className="text-base font-semibold text-gray-800">
           {name}
         </Text>
-        <Text className="text-sm text-gray-600 mt-1">₹{price.toFixed(2)}</Text>
-
+        <View className='flex-row-reverse items-center justify-between mt-1'>
+            <Text className="text-md text-gray-600 mt-1">₹{price.toFixed(2)}</Text>
+            <Text className="text-md text-gray-500 mt-1">{unit}</Text>
+        </View>
         {/* Quantity Selector */}
-        <View className="flex-row items-center justify-center gap-6 border border-gray-200 rounded-lg p-2 mt-3">
-          <TouchableOpacity
-            onPress={decrease}
-            className="bg-gray-200 rounded-full px-2"
-          >
-            <Text className="text-lg font-semibold">−</Text>
-          </TouchableOpacity>
-
-          <Text className="text-base font-medium">{quantity}</Text>
-
-          <TouchableOpacity
-            onPress={increase}
-            className="bg-gray-200 rounded-full px-2"
-          >
-            <Text className="text-lg font-semibold">+</Text>
-          </TouchableOpacity>
+        <View className='mt-2 flex items-center'>
+          <IncreaseButton OnCount={(Count) => setQuantity(Count)} />
         </View>
 
         {/* Add to Cart Button */}
         <TouchableOpacity
-          onPress={() => onAddToCart(quantity)}
+          onPress={() => onAddToCart(Quantity)}
           className="mt-3 bg-blue-600 rounded-xl py-2"
         >
           <Text className="text-white text-center text-sm font-semibold">
-            Add {quantity} to Cart
+            Add {Quantity} to Cart • ₹{(price * Quantity).toFixed(2)}
           </Text>
         </TouchableOpacity>
       </View>

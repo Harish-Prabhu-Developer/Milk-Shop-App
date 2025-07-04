@@ -1,113 +1,135 @@
-// HomeScreen.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   StatusBar,
   FlatList,
   Text,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import ProductCard from '@Components/Card/ProductCard';
 import HeaderSection from '@Components/Header/HeaderSection';
-import { KeyboardAvoidingView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { AppDispatch } from '@/Redux/Store';
 import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch } from '@/Redux/Store';
 import { StackNavigationProp } from '@react-navigation/stack';
-type Product = {
-    id: string;
-    name: string;
-    price: number;
-    image: any;
-  };
-const products = [
-  {
-    id: '1',
-    name: 'Full Cream Milk',
-    price: 28.5,
-    image: require('@assets/image.png'),
-  },
-  {
-    id: '2',
-    name: 'Toned Milk',
-    price: 25.0,
-    image: require('@assets/image.png'),
-  },
-  {
-    id: '3',
-    name: 'Skimmed Milk',
-    price: 23.0,
-    image: require('@assets/image.png'),
-  },
-  { id: '4', name: 'Curd', price: 35.0, image: require('@assets/image.png') },
-  { id: '5', name: 'Paneer', price: 85.0, image: require('@assets/image.png') },
-  { id: '6', name: 'Ghee', price: 450.0, image: require('@assets/image.png') },
-  { id: '7', name: 'Butter', price: 75.0, image: require('@assets/image.png') },
-];
+import { CartProduct } from '@/Utils/@types/Products';
+
+// Optionally import fetchProducts if implemented
+// import { fetchProducts } from '@/Redux/Slices/ProductSlice';
 
 const HomeScreen = () => {
-const handleAddToCart = (itemName: string, qty: number) => {
-  console.log(`${qty} x ${itemName} added to cart`);
-};
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const dispatch =useDispatch<AppDispatch>();
-  const ProductsData:Product[]=useSelector((state:any) => state.product.products);
+  const dispatch = useDispatch<AppDispatch>();
+  const [SearchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [quantities, setQuantities] = useState<{ [productId: string]: number }>({});
+
+  const productsData: CartProduct[] = useSelector(
+    (state: any) => state.product.products
+  );
+
+  // Simulated data fetch
+  const fetchProductsData = async () => {
+    setLoading(true);
+    try {
+      // await dispatch(fetchProducts()); // if using Redux thunk
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.log('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Fetch products from the Redux store or API if needed
-    // dispatch(fetchProducts());
-  }, [dispatch]);
+    fetchProductsData();
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchProductsData();
+    setRefreshing(false);
+  }, []);
+
+  const handleAddToCart = (productId: string, itemName: string, qty: number) => {
+    setQuantities((prev) => ({ ...prev, [productId]: qty }));
+    console.log(`${qty} x ${itemName} added to cart`);
+  };
+
+  const filteredProducts = productsData.filter((item) =>
+    item.name.toLowerCase().includes(SearchQuery.toLowerCase())
+  );
+
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-gray-50">
       <StatusBar barStyle="light-content" />
 
-      {/* Header Section */}
-      <KeyboardAvoidingView behavior="padding" className="sm:pt-safe-or-8">
+      {/* Header with Search */}
+      <KeyboardAvoidingView behavior="padding">
         <HeaderSection
           SearchBar={true}
-          onSearch={query => console.log(query)}
+          onSearch={(query) => setSearchQuery(query)}
         />
       </KeyboardAvoidingView>
 
-      {/* Title */}
       <View className="px-4 my-3">
         <Text className="text-xl font-bold text-gray-800">Our Products</Text>
       </View>
 
-      {/* Product Grid */}
-      <FlatList
-        data={ProductsData.length > 0 ? ProductsData : products}
-        keyExtractor={(item, index) => item.id || index.toString()}
-        numColumns={2}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 8, paddingBottom: 16 }}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
-        ListEmptyComponent={() => (
-          <Text className="text-center text-black">No products available</Text>
-        )}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('ProductDetailsScreen', {
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                image: item.image,
-                unit: '500ml',
-                description: 'Fresh and pure dairy milk perfect for daily use.',
-                nutrition:
-                  'Energy: 70kcal | Fat: 4g | Protein: 3.2g | Calcium: 120mg',
-              })
-            }
-          >
-            <ProductCard
-                name={item.name}
-                price={item.price}
-                image={item.image}
-                onAddToCart={(qty) => handleAddToCart(item.name, qty)}
-              />
-          </TouchableOpacity>
-        )}
-      />
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#4B5563" />
+          <Text className="mt-2 text-gray-700">Loading products...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredProducts}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 8, paddingBottom: 100 }}
+          columnWrapperStyle={{ justifyContent: 'space-between' }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={() => (
+            <Text className="text-center text-black">No products available</Text>
+          )}
+          renderItem={({ item }) => {
+            const currentQty = quantities[item.id] ?? 1;
+
+            return (
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('ProductDetailsScreen', {
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    image: item.image,
+                    unit: item.unit,
+                    description: item.description,
+                    nutrition: item.nutrition,
+                    quantity: currentQty,
+                  })
+                }
+              >
+                <ProductCard
+                  name={item.name}
+                  price={item.price}
+                  image={item.image}
+                  quantity={currentQty}
+                  unit={item.unit}
+                  onAddToCart={(qty) => handleAddToCart(item.id, item.name, qty)}
+                />
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
     </View>
   );
 };

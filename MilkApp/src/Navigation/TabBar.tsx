@@ -4,7 +4,6 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '@Screens/HomeScreen';
 import ProfileScreen from '@Screens/ProfileScreen';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Or any icon lib you use
 import OrderScreen from '@Screens/OrderScreen';
 import MyTabBar from './MyTabBar';
 

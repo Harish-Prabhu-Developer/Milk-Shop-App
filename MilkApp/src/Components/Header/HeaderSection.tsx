@@ -1,6 +1,8 @@
 import { StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native'
 import React, { useState } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 type HeaderSectionProps = {
     SearchBar?: boolean;
     onSearch?: (query: string) => void;
@@ -10,7 +12,7 @@ type HeaderSectionProps = {
 const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
     //search data and filter data
      const [searchQuery, setSearchQuery] = useState('');
-     const isDarkMode=useColorScheme() === 'dark';
+     const navigation = useNavigation<StackNavigationProp<any>>();     
 
   return (
           <View className="bg-primary px-4 py-[36px] rounded-b-3xl w-full">
@@ -25,7 +27,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
               {/* Cart & Notification Icons */}
               <View className="flex-row space-x-6 gap-4">
                 <TouchableOpacity className="relative bg-blue-800 p-2 rounded-lg"
-                  onPress={() => console.info('Cart Pressed')}>
+                  onPress={() => navigation.navigate("CartScreen")}>
                   <Icon name="shopping-cart" size={20} color="#fff" />
                   <View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />
                 </TouchableOpacity>
@@ -53,7 +55,9 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
                     }
                 }}
               />
-              <Icon name="tune" size={20} color="#3b82f6" />
+              <TouchableOpacity >
+                <Icon name="tune" size={20} color="#3b82f6" />
+              </TouchableOpacity>
             </View>)
             }
           </View>

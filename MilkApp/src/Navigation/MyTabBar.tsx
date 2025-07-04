@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -8,18 +8,42 @@ const MyTabBar: React.FC<BottomTabBarProps> = ({
   descriptors,
   navigation,
 }) => {
-  return (
-    <View style={styles.tabContainer}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const label =
-          options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-            ? options.title
-            : route.name;
+  const getIcon = (routeName: string) => {
+    switch (routeName) {
+      case 'HomeScreen':
+        return 'home';
+      case 'OrderScreen':
+        return 'list-alt';
+      case 'ProfileScreen':
+        return 'person';
+      default:
+        return 'circle';
+    }
+  };
 
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderTopWidth: 0,
+        padding: 10,
+        margin: 10,
+        bottom:24,
+        position: 'absolute',
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOpacity: 2.5,
+        shadowOffset: { width: 0, height: -2 },
+        shadowRadius: 100,
+        elevation: 5,
+
+      }}
+    >
+      {state.routes.map((route, index) => {
         const isFocused = state.index === index;
+        const iconName = getIcon(route.name);
+        const label = descriptors[route.key].options.tabBarLabel ?? route.name;
 
         const onPress = () => {
           const event = navigation.emit({
@@ -33,81 +57,43 @@ const MyTabBar: React.FC<BottomTabBarProps> = ({
           }
         };
 
-        // Choose icons based on route
-        let iconName = '';
-        if (route.name === 'HomeScreen') iconName = 'home';
-        else if (route.name === 'OrderScreen') iconName = 'event';
-        else if (route.name === 'ProfileScreen') iconName = 'person';
-
         return (
           <Pressable
             key={route.key}
             onPress={onPress}
-            style={styles.tabItemWrapper}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 8,
+              borderRadius: 16,
+              backgroundColor: isFocused ? '#3D8BFD' : 'transparent',
+              flexDirection: 'row',
+              marginHorizontal: 6,
+            }}
           >
-            <View style={[styles.tabItem, isFocused && styles.activeTab]}>
-              <Icon
-                name={iconName}
-                size={22}
-                color={isFocused ? '#FFFFFF' : '#333'}
-              />
-              {isFocused && (
-                <Text style={[styles.label, { color: '#ffffff' }]}>
-                  {label as string}
-                </Text>
-              )}
-            </View>
+            <Icon
+              name={iconName}
+              size={22}
+              color={isFocused ? '#fff' : '#555'}
+            />
+            {isFocused && (
+              <Text
+                style={{
+                  color: '#fff',
+                  marginLeft: 6,
+                  fontWeight: '600',
+                  fontSize: 14,
+                }}
+              >
+                {label as string}
+              </Text>
+            )}
           </Pressable>
         );
       })}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderTopColor: '#eee',
-    borderTopWidth: 1,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  tabItemWrapper: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  tabItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  activeTab: {
-    backgroundColor: '#000000',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 4, 
-    borderRadius: 20,
-
-  },
-  label: {
-    marginLeft: 6,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-});
 
 export default MyTabBar;
