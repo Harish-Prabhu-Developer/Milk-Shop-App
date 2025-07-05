@@ -83,7 +83,10 @@ const MyTabBar: React.FC<BottomTabBarProps> = ({
                   color: '#fff',
                   marginLeft: 6,
                   fontWeight: '600',
-                  fontSize: 14,
+                  fontSize: 16,
+                  textTransform: 'capitalize',
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
                 }}
               >
                 {label as string}

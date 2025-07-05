@@ -13,9 +13,10 @@ import ProductCard from '@Components/Card/ProductCard';
 import HeaderSection from '@Components/Header/HeaderSection';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '@/Redux/Store';
+import { AppDispatch } from '@Redux/Store';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { CartProduct } from '@/Utils/@types/Products';
+import { CartProduct } from '@Utils/@types/Products';
+import { addToCart } from '@Redux/Cart/CartSlice';
 
 // Optionally import fetchProducts if implemented
 // import { fetchProducts } from '@/Redux/Slices/ProductSlice';
@@ -32,6 +33,7 @@ const HomeScreen = () => {
     (state: any) => state.product.products
   );
 
+  
   // Simulated data fetch
   const fetchProductsData = async () => {
     setLoading(true);
@@ -45,10 +47,11 @@ const HomeScreen = () => {
     }
   };
 
+  
   useEffect(() => {
     fetchProductsData();
   }, []);
-
+  // This effect can be used to fetch products data when the component mounts
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchProductsData();
@@ -56,7 +59,18 @@ const HomeScreen = () => {
   }, []);
 
   const handleAddToCart = (productId: string, itemName: string, qty: number) => {
-    setQuantities((prev) => ({ ...prev, [productId]: qty }));
+    setQuantities((prev) => ({ ...prev, quantity: qty }));
+    const productToAdd: CartProduct = {
+      id: productId,
+      name: itemName,
+      price: productsData.find((item) => item.id === productId)?.price || 0,
+      unit: productsData.find((item) => item.id === productId)?.unit || '',
+      description: productsData.find((item) => item.id === productId)?.description || '',
+      nutrition: productsData.find((item) => item.id === productId)?.nutrition || '',
+      image: productsData.find((item) => item.id === productId)?.image || require('@assets/image.png'),
+      quantity: qty,
+    };
+    dispatch(addToCart(productToAdd));
     console.log(`${qty} x ${itemName} added to cart`);
   };
 

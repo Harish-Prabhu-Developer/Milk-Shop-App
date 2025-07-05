@@ -28,6 +28,9 @@ const CartSlice = createSlice({
             if (product) {
                 product.quantity = quantity;
             }
+        },
+        clearCart: (state) => {
+            state.Carts = [];
         }
     },
     extraReducers: (builder) => {
@@ -36,5 +39,5 @@ const CartSlice = createSlice({
 });
 
 
-export const { addToCart, removeFromCart, EditOnCart } = CartSlice.actions;
+export const { addToCart, removeFromCart, EditOnCart, clearCart } = CartSlice.actions;
 export default CartSlice.reducer;

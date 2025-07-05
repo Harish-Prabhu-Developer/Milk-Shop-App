@@ -10,8 +10,10 @@ interface ProductCardProps {
   unit: string;
   description?: string;
   nutrition?: string;
+  //send ProductDetailsScreen into increase or decrease value
   quantity?: number;
   onAddToCart: (qty: number) => void;
+  onPress?: () => void;
 }
 
 const ProductCard = ({ name, price, image,quantity,unit,description,nutrition, onAddToCart }: ProductCardProps) => {
@@ -36,7 +38,7 @@ const ProductCard = ({ name, price, image,quantity,unit,description,nutrition, o
         </View>
         {/* Quantity Selector */}
         <View className='mt-2 flex items-center'>
-          <IncreaseButton OnCount={(Count) => setQuantity(Count)} />
+          <IncreaseButton OnCount={(Count) => setQuantity(Count)} initialCount={Quantity} />
         </View>
 
         {/* Add to Cart Button */}
@@ -44,7 +46,7 @@ const ProductCard = ({ name, price, image,quantity,unit,description,nutrition, o
           onPress={() => onAddToCart(Quantity)}
           className="mt-3 bg-blue-600 rounded-xl py-2"
         >
-          <Text className="text-white text-center text-sm font-semibold">
+          <Text className="text-white text-center text-sm font-semibold" >
             Add {Quantity} to Cart • ₹{(price * Quantity).toFixed(2)}
           </Text>
         </TouchableOpacity>

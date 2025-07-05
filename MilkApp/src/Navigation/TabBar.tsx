@@ -17,7 +17,7 @@ const TabBar = () => {
   tabBar={(props) => <MyTabBar {...props} />}
 >
   <Tab.Screen name="HomeScreen" component={HomeScreen} options={{ tabBarLabel: 'Home' }} />
-  <Tab.Screen name="OrderScreen" component={OrderScreen} options={{ tabBarLabel: 'Order' }} />
+  <Tab.Screen name="OrderScreen" component={OrderScreen} options={{ tabBarLabel: 'Orders' }} />
   <Tab.Screen name="ProfileScreen" component={ProfileScreen} options={{ tabBarLabel: 'Profile' }} />
 </Tab.Navigator>
 

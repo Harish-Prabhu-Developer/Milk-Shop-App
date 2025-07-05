@@ -13,6 +13,8 @@ import Store from "./Redux/Store";
 import { Provider } from "react-redux";
 import { CartProduct, Product } from "@Utils/@types/Products";
 import CartScreen from "@Screens/CartScreen";
+import { Order } from "./Utils/@types/Order";
+import OrderDetailScreen from "./Screens/OrderDetailScreen";
 
 type RootStackParamList = {
   LoginScreen: undefined;
@@ -20,6 +22,7 @@ type RootStackParamList = {
   ProductDetailsScreen: Product;
   TabBar: undefined;
   CartScreen: undefined;
+  OrderDetailScreen: { Order:Order }; // Assuming you have an OrderDetailScreen
 
 };
 const Stack = createStackNavigator<RootStackParamList>();
@@ -52,6 +55,7 @@ const App = () => {
         <Stack.Screen name="ProductDetailsScreen" component={ProductDetailsScreen} />
         <Stack.Screen name="TabBar" component={TabBar} />
         <Stack.Screen name="CartScreen" component={CartScreen}/>
+        <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
  </Provider>

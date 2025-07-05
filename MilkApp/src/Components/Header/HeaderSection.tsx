@@ -3,6 +3,9 @@ import React, { useState } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch } from '@Redux/Store';
+import { CartProduct } from '@Utils/@types/Products';
 type HeaderSectionProps = {
     SearchBar?: boolean;
     onSearch?: (query: string) => void;
@@ -13,6 +16,8 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
     //search data and filter data
      const [searchQuery, setSearchQuery] = useState('');
      const navigation = useNavigation<StackNavigationProp<any>>();     
+     const dispatch = useDispatch<AppDispatch>();
+     const cartData: CartProduct[] = useSelector((state: any) => state.Cart.Carts);
 
   return (
           <View className="bg-primary px-4 py-[36px] rounded-b-3xl w-full">
@@ -29,7 +34,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
                 <TouchableOpacity className="relative bg-blue-800 p-2 rounded-lg"
                   onPress={() => navigation.navigate("CartScreen")}>
                   <Icon name="shopping-cart" size={20} color="#fff" />
-                  <View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />
+                  {cartData.length > 0 && (<View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />)}
                 </TouchableOpacity>
                 <TouchableOpacity className="relative bg-blue-800 p-2 rounded-lg"
                   onPress={() => console.info('Notifications Pressed')}>
