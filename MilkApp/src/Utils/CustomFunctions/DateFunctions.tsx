@@ -16,7 +16,21 @@ export const formatDate = (date: string) => {
     return `${day}-${month}-${year}`;
   };
   
+
+  // get day(Mon,tue)
+  export function GetDay(dateString:string) {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = { weekday: 'short' };
+    return date.toLocaleDateString('en-US', options);
     
+  }
+
+  // get time
+  export function GetTime(dateString: string) {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
+    return date.toLocaleTimeString('en-US', options);
+  }
     export function dateFormatter(dateString: string) {
       const inputDate = new Date(dateString);
     

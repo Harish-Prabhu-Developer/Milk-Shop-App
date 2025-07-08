@@ -7,7 +7,13 @@ import ProfileScreen from '@Screens/ProfileScreen';
 import OrderScreen from '@Screens/OrderScreen';
 import MyTabBar from './MyTabBar';
 
-const Tab = createBottomTabNavigator();
+type RootTabBarParamList = {
+  HomeScreen: undefined;
+  OrderScreen: undefined;
+  ProfileScreen: undefined;
+
+};
+const Tab = createBottomTabNavigator<RootTabBarParamList>();
 
 const TabBar = () => {
   return (

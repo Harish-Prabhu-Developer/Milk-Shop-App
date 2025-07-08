@@ -1,94 +1,133 @@
-import { Image, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Order } from '@Utils/@types/Order';
-import { formatDate } from '@Utils/CustomFunctions/DateFunctions';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { formatDate, GetDay, GetTime } from '@Utils/CustomFunctions/DateFunctions';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
+import Animated, {
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 type OrderCardProps = {
   Order: Order;
 };
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'Pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'Processing':
-    case 'Out for Delivery':
-      return 'bg-blue-100 text-blue-800';
-    case 'Delivered':
-      return 'bg-green-100 text-green-800';
-    case 'Cancelled':
-    case 'Failed':
-    case 'Returned':
-      return 'bg-red-100 text-red-800';
-    case 'Completed':
-      return 'bg-emerald-100 text-emerald-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+const getStatusColor = {
+  Pending: "bg-yellow-100 text-yellow-800",
+  Processing: "bg-blue-100 text-blue-800",
+  "Out for Delivery": "bg-blue-100 text-blue-800",
+  Delivered: "bg-green-100 text-green-800",
+  Cancelled: "bg-red-100 text-red-800",
+  Failed: "bg-red-100 text-red-800",
+  Returned: "bg-red-100 text-red-800",
+  Completed: "bg-emerald-100 text-emerald-800",
 };
 
 const OrderCard = ({ Order }: OrderCardProps) => {
-    const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation<StackNavigationProp<any>>();
+  const scale = useSharedValue(1);
+
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const onPressIn = () => {
+    scale.value = withSpring(0.97, { damping: 8 });
+  };
+
+  const onPressOut = () => {
+    scale.value = withSpring(1);
+  };
+
   return (
-    <TouchableOpacity className="w-full bg-white px-4 py-5 mb-4 rounded-2xl border border-gray-100 shadow-md"
-                     onPress={() => navigation.navigate('OrderDetailScreen', { Order })}>
+  <Animated.View entering={FadeInUp.duration(500)}>
+    <Animated.View
+      style={[animatedCardStyle]}
+      className="w-full bg-white px-4 py-5 mb-4 rounded-2xl border border-gray-300 shadow-lg"
+    >
       {/* Order ID and Date */}
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-lg font-semibold text-gray-800">
-          #{Order.OrderId}
-        </Text>
-        <Text className="text-sm text-gray-500">{formatDate(Order.OrderDate)}</Text>
+        <Text className="text-lg font-semibold text-gray-900">#{Order.OrderId}</Text>
+        <Text className="text-sm text-gray-700">{`${formatDate(Order.OrderDate)}`}</Text>
       </View>
 
-      {/* Divider */}
+      <View className="flex-row justify-between items-center mb-4">
+        <View className="flex-row items-center space-x-2 gap-1">
+          <MaterialIcons name="calendar-today" size={18} color="#3D8BFD" />
+          <Text className="text-sm text-gray-700 font-medium">
+            {GetDay(Order.OrderDate)}
+          </Text>
+        </View>
+        <View className="flex-row items-center space-x-2 gap-2">
+          <MaterialIcons name="access-time" size={18} color="#3D8BFD" />
+          <Text className="text-sm text-gray-700 font-medium">
+            {GetTime(Order.OrderDate)}
+          </Text>
+        </View>
+      </View>
+
       <View className="border-b border-gray-200 mb-4" />
 
-      {/* Status Section */}
-      <View className="mb-4 space-y-2">
+      <View className="mb-4 space-y-2 gap-4">
         <View className="flex-row justify-between items-center">
           <Text className="text-base text-gray-600">Order Status</Text>
-          <Text className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(Order.OrderStatus)}`}>
+          <Text
+            className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor[Order.OrderStatus as keyof typeof getStatusColor]}`}
+          >
             {Order.OrderStatus}
           </Text>
         </View>
         <View className="flex-row justify-between items-center">
           <Text className="text-base text-gray-600">Payment</Text>
-          <Text className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(Order.PaymentStatus)}`}>
+          <Text
+            className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor[Order.PaymentStatus as keyof typeof getStatusColor]}`}
+          >
             {Order.PaymentStatus}
           </Text>
         </View>
         <View className="flex-row justify-between items-center">
           <Text className="text-base text-gray-600">Delivery</Text>
-          <Text className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(Order.DeliveryStatus)}`}>
+          <Text
+            className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor[Order.DeliveryStatus as keyof typeof getStatusColor]}`}
+          >
             {Order.DeliveryStatus}
           </Text>
         </View>
       </View>
 
-      {/* Divider */}
       <View className="border-b border-gray-200 mb-4" />
-
-      {/* Customer and Amount */}
-      <View className="flex-row justify-between items-center mb-2">
-        <View className="flex-row items-center space-x-2">
-          <Icon name="person" size={18} color="#6B7280" />
-          <Text className="text-sm text-gray-600">Customer</Text>
-        </View>
-        <Text className="text-sm font-medium text-gray-800">{Order.UserName}</Text>
-      </View>
 
       <View className="flex-row justify-between items-center">
         <View className="flex-row items-center space-x-2">
-          <Icon name="payments" size={18} color="#6B7280" />
-          <Text className="text-sm text-gray-600">Total</Text>
+          <SimpleLineIcons name="wallet" size={18} color="#3D8BFD" style={{ padding: 2 }} />
+          <Text className="text-md text-gray-800 p-1 font-bold">Total</Text>
         </View>
-        <Text className="text-lg font-extrabold text-emerald-600">₹{Order.TotalAmount.toFixed(2)}</Text>
+        <Text className="text-xl font-extrabold text-primary">₹{Order.TotalAmount.toFixed(2)}</Text>
       </View>
-    </TouchableOpacity>
-  );
+
+      <View className="mt-5 flex-row justify-end">
+        <TouchableOpacity
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
+          onPress={() => navigation.navigate('OrderDetailScreen', { Order })}
+          className="bg-primary px-4 py-2 rounded-full shadow-md active:opacity-90"
+          activeOpacity={0.85}
+        >
+          <View className="flex-row items-center space-x-2">
+            <Text className="text-white text-md font-semibold">View Details</Text>
+            <MaterialIcons name="arrow-forward-ios" size={16} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </Animated.View>
+  </Animated.View>
+);
+
 };
 
 export default OrderCard;

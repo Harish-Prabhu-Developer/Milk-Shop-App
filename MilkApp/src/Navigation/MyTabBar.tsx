@@ -25,7 +25,7 @@ const MyTabBar: React.FC<BottomTabBarProps> = ({
     <View
       style={{
         flexDirection: 'row',
-        backgroundColor: '#fff',
+        backgroundColor: '#3D8BFD',
         borderTopWidth: 0,
         padding: 10,
         margin: 10,
@@ -67,7 +67,7 @@ const MyTabBar: React.FC<BottomTabBarProps> = ({
               justifyContent: 'center',
               paddingVertical: 8,
               borderRadius: 16,
-              backgroundColor: isFocused ? '#3D8BFD' : 'transparent',
+              backgroundColor: isFocused ? '#fff' : 'transparent',
               flexDirection: 'row',
               marginHorizontal: 6,
             }}
@@ -75,12 +75,12 @@ const MyTabBar: React.FC<BottomTabBarProps> = ({
             <Icon
               name={iconName}
               size={22}
-              color={isFocused ? '#fff' : '#555'}
+              color={isFocused ? '#3D8BFD' : '#fff'}
             />
             {isFocused && (
               <Text
                 style={{
-                  color: '#fff',
+                  color: '#3D8BFD',
                   marginLeft: 6,
                   fontWeight: '600',
                   fontSize: 16,
