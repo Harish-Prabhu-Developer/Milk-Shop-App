@@ -10,7 +10,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { formatDate, GetDay, GetTime } from '@Utils/CustomFunctions/DateFunctions';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
-import RNFS from 'react-native-fs';
+import FileViewer from "react-native-file-viewer";
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { InvoiceTemplate } from '@Utils/Template/Download';
 import { useDispatch } from 'react-redux';
@@ -23,7 +23,7 @@ const OrderDetailScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const dispatch = useDispatch<AppDispatch>();
 
-
+  
   if (!params || !params.Order) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
@@ -111,7 +111,32 @@ const OrderDetailScreen = () => {
       }
   };
 
+// Function to open a file
+const openFile = (path: string): void => {
+  FileViewer.open(path)
+    .then(() => {
+      console.log('Success', path);
+    })
+    .catch((error: unknown) => {
+      console.error('Error opening file:', error);
+    });
+};
+const ShareFile = (path: string): void => {
+  if (!path) {
+    console.error('File path is undefined or empty.');
+    return;
+  }
 
+  Share.open({ url: `file://${path}` }) // Ensure the path is formatted correctly as a file URL
+    .then((res) => {
+      console.log('Share successful:', res);
+    })
+    .catch((err) => {
+      if (err) {
+        console.error('Error while sharing file:', err);
+      }
+    });
+};
 const handleDownloadInvoice = async () => {
   try {
     const fileName = `invoice_${Order.OrderId}.pdf`;
@@ -120,44 +145,24 @@ const handleDownloadInvoice = async () => {
       html: InvoiceTemplate(Order),
       fileName: fileName.replace('.pdf', ''),
       base64: false,
+      directory: 'Download',
     };
 
     const file = await RNHTMLtoPDF.convert(options);
-    const sourcePath = file.filePath;
 
-    const sdkInt = typeof Platform.Version === 'number' ? Platform.Version : parseInt(Platform.Version as string, 10);
-    let destPath = '';
-
-    if (Platform.OS === 'android') {
-      if (sdkInt <= 10) {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'We need access to save your invoice to the Downloads folder.',
-            buttonPositive: 'Allow',
-            buttonNegative: 'Deny',
-          }
-        );
-
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert('Permission Denied', 'Cannot save invoices without storage access.');
-          return;
-        }
-
-        destPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-      } else {
-        // Android 11+ — fallback to app's private folder
-        destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-      }
-    } else {
-      // iOS
-      destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-    }
-
-    await RNFS.copyFile(sourcePath!, destPath);
-
-    Alert.alert('Download Complete', `Invoice saved to: ${destPath}`);
+      //Alert.alert('Success', `PDF generated at: ${file.filePath}`);
+      Alert.alert('Success', `Successfully PDF generated`, [
+      
+        {
+          text: 'Open',
+          onPress: () => openFile(`${file.filePath}`),
+        },
+        {
+          text: 'Share',
+          onPress: () => ShareFile(`${file.filePath}`),
+          
+        },
+      ]);
   } catch (error) {
     console.error(error);
     Alert.alert('Error', 'Failed to generate or save the invoice.');
@@ -197,6 +202,7 @@ const handleDownloadInvoice = async () => {
             <Badge label="Delivery" status={Order.DeliveryStatus} />
           </View>
         </View>
+
 
         {/* Product List */}
         <View className="p-4">
