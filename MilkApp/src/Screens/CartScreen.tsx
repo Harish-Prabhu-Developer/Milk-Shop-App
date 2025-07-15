@@ -124,14 +124,14 @@ const handleCheckout = async () => {
   const orderDetails: Order = {
     id: `ORD${Date.now()}`, // Temporary ID, replace with actual ID from backend
     ProductData: productData,
-    UserId: 'user123', // Replace with actual user ID from auth
-    UserName: 'John Doe', // Replace with actual user name
+    Branch: { id: 'BRN001', branchType: 'AKC OUT', branchName: 'Branch A', phone: '1234567890', location: 'Location A',routeType:'ROUTE 1',routeName:'Route 1' },
     OrderId: `ORD${Date.now()}${"John Doe"}${Math.floor(Math.random() * 1000)}`, // Unique Order ID
     OrderDate: new Date().toISOString(),
     TotalAmount: totalAmount,
     OrderStatus: 'Delivered',
     PaymentStatus: 'Failed',
-    DeliveryStatus: 'Out for Delivery'
+    // DeliveryStatus: 'Out for Delivery',
+    ReceivedStatus: 'Pending'
   };
 
    const res =await dispatch(addToMyOrders(orderDetails));

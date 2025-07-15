@@ -18,8 +18,8 @@ const OrderScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const OrderData: Order[] = useSelector((state: any) => state.Order.MyOrders ?? []);
   console.log('Order Data:', OrderData);
-  const activeOrders = OrderData.filter((order: Order) => order.OrderStatus !== 'Delivered' && order.OrderStatus !== 'Cancelled');
-  const pastOrders = OrderData.filter((order: Order) => order.OrderStatus === 'Delivered' || order.OrderStatus === 'Cancelled');
+  const activeOrders = OrderData.filter((order: Order) =>  order.OrderStatus !== 'Cancelled' && order.ReceivedStatus !== 'Confirmed');
+  const pastOrders = OrderData.filter((order: Order) => order.OrderStatus === 'Cancelled' || order.ReceivedStatus === 'Confirmed');
   return (
     <View className="flex-1 bg-gray-50">
       <StatusBar barStyle="light-content" />
@@ -27,7 +27,7 @@ const OrderScreen = () => {
       {/* Header */}
       <View className="bg-primary py-5 px-5 shadow-md rounded-b-3xl">
         <View className="flex-row items-center pt-8 space-x-4">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'TabBar' }] })} className='p-1'>
             <Icon name="arrow-back" size={26} color="#fff" />
           </TouchableOpacity>
           <Text className="text-2xl font-semibold text-white">My Orders</Text>

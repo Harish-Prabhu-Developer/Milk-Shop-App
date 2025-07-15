@@ -1,5 +1,5 @@
 // OrderDetailScreen.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Platform, Alert, Linking, PermissionsAndroid } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
@@ -15,14 +15,14 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { InvoiceTemplate } from '@Utils/Template/Download';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '@Redux/Store';
-import { addToMyOrders } from '@Redux/Order/OrderSlice';
+import { addToMyOrders, cancelOrder,confirmOrder } from '@Redux/Order/OrderSlice';
+import ConfirmOrderModal from '@Components/Alert/ConfirmOrderModal';
 
 const OrderDetailScreen = () => {
   const route = useRoute();
   const params = route.params as { Order: Order } | undefined;
   const navigation = useNavigation<StackNavigationProp<any>>();
   const dispatch = useDispatch<AppDispatch>();
-
   
   if (!params || !params.Order) {
     return (
@@ -33,6 +33,30 @@ const OrderDetailScreen = () => {
   }
 
   const { Order } = params;
+const [modalVisible, setModalVisible] = useState(false);
+const [selectedProducts, setSelectedProducts] = useState<Record<string, { selected: boolean; qty: number }>>(
+  Object.fromEntries(Order.ProductData.map(product => [product.id, { selected: true, qty: product.quantity }]))
+);
+
+const toggleProductSelection = (productId: string) => {
+  setSelectedProducts(prev => ({
+    ...prev,
+    [productId]: {
+      ...prev[productId],
+      selected: !prev[productId]?.selected,
+    },
+  }));
+};
+
+const updateProductQuantity = (productId: string, qty: number) => {
+  setSelectedProducts(prev => ({
+    ...prev,
+    [productId]: {
+      ...prev[productId],
+      qty,
+    },
+  }));
+};
 
   const bgMap = {
     Pending: 'bg-yellow-100 text-yellow-800',
@@ -52,17 +76,6 @@ const OrderDetailScreen = () => {
       {label}: {status}
     </Text>
   );
-
-  // const generateAndSharePDF = async () => {
-  //   try {
-
-  //     const options = { InvoiceTemplate, fileName: `invoice_${Order.OrderId}`, base64: false };
-  //     const file = await RNHTMLtoPDF.convert(options.);
-  //     await Share.open({ url: Platform.OS === 'android' ? `file://${file.filePath}` : file.filePath });
-  //   } catch (err) {
-  //     Alert.alert('Error', 'Unable to generate or share invoice.');
-  //   }
-  // };
 
   const renderProduct = (item: OrderProduct, index: number) => (
     <Animated.View
@@ -92,14 +105,13 @@ const OrderDetailScreen = () => {
     const updatedOrder:Order = { 
       id: `ORD${Date.now()}`,
     ProductData: Order.ProductData,
-    UserId: Order.UserId, 
-    UserName: Order.UserName,    
+    Branch: { id: 'BRN001', branchType: 'AKC OUT', branchName: 'Branch A', phone: '1234567890', location: 'Location A',routeType:'ROUTE 1',routeName:'Route 1' },    
     OrderId: `ORD${Date.now()}${"John Doe"}${Math.floor(Math.random() * 1000)}`, // Unique Order ID
     OrderDate: new Date().toISOString(),
     TotalAmount: Order.TotalAmount,
     OrderStatus: 'Pending',
     PaymentStatus: 'Pending',
-    DeliveryStatus: 'Pending'
+    ReceivedStatus: 'Pending'
     };
     console.log('Updated Order:', updatedOrder);
     const res =await dispatch(addToMyOrders(updatedOrder));
@@ -137,6 +149,38 @@ const ShareFile = (path: string): void => {
       }
     });
 };
+const handleModalConfirm = async () => {
+  const receivedItems = Object.entries(selectedProducts)
+    .filter(([_, data]) => data.selected && data.qty > 0)
+    .map(([id, data]) => ({
+      id,
+      receivedQty: data.qty,
+    }));
+
+  const res = await dispatch(confirmOrder({ id: Order.OrderId, receivedItems }));
+
+  if (res.type === 'Order/confirmOrder') {
+    setModalVisible(false);
+    Alert.alert('Order Received', 'Your order has been received successfully!', [
+      { text: 'OK', onPress: () => navigation.navigate('OrderScreen') },
+    ]);
+  }
+};
+
+
+
+const handleCancelOrder = async () => {
+  try {
+    const res = await dispatch(cancelOrder({id:Order.OrderId}));
+    if (res.type === 'Order/cancelOrder') {
+      Alert.alert('Order Cancelled', 'Your order has been cancelled successfully!', [
+        { text: 'OK', onPress: () => navigation.navigate('OrderScreen') },
+      ]);
+    }
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+  }
+}
 const handleDownloadInvoice = async () => {
   try {
     const fileName = `invoice_${Order.OrderId}.pdf`;
@@ -171,9 +215,19 @@ const handleDownloadInvoice = async () => {
 
   return (
     <>
+      <ConfirmOrderModal
+        visible={modalVisible}
+        products={Order.ProductData}
+        selectedProducts={selectedProducts}
+        onSelect={toggleProductSelection}
+        onQuantityChange={updateProductQuantity}
+        onCancel={() => setModalVisible(false)}
+        onConfirm={handleModalConfirm}
+      />
+
       {/* Sticky Header */}
         <View className="absolute top-0 left-0 right-0 bg-primary p-2 z-10 min-h-[60px] pt-8 flex-row items-center justify-between shadow-md">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="p-3">
+        <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'OrderScreen' }] })} className="p-3">
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text className="text-white text-xl font-semibold">Order Details</Text>
@@ -199,7 +253,7 @@ const handleDownloadInvoice = async () => {
           <View className="flex-row gap-2 mt-3 flex-wrap">
             <Badge label="Order" status={Order.OrderStatus} />
             <Badge label="Payment" status={Order.PaymentStatus} />
-            <Badge label="Delivery" status={Order.DeliveryStatus} />
+            {/* <Badge label="Delivery" status={Order.DeliveryStatus} /> */}
           </View>
         </View>
 
@@ -218,27 +272,145 @@ const handleDownloadInvoice = async () => {
           </View>
         </View>
 
+<View className="mx-4 my-4 p-4 bg-white rounded-2xl shadow-md border border-gray-100">
+  <Text className="text-xl font-bold text-gray-800 mb-6">Order Tracking</Text>
+
+  {[
+    {
+      label: 'Order Placed',
+      statusCheck: () => true,
+      activeCheck: () => Order.OrderStatus === 'Pending',
+      date: Order.OrderDate,
+    },
+    {
+      label: 'In-Progress',
+      statusCheck: () => ['Processing', 'Delivered'].includes(Order.OrderStatus),
+      activeCheck: () => Order.OrderStatus === 'Processing',
+      date: Order.ConfirmOrderDate || Order.OrderDate,
+    },
+    {
+      label: 'Received Delivered',
+      statusCheck: () => ['Delivered', 'Completed'].includes(Order.OrderStatus),
+      activeCheck: () => Order.OrderStatus === 'Delivered',
+      date: Order.ReceivedDate,
+    },
+  ].map((step, index, arr) => {
+    const isCompleted = step.statusCheck();
+    const isActive = step.activeCheck();
+
+    const circleColor = isCompleted || isActive ? 'bg-primary' : 'bg-gray-400';
+    const lineColor = index < arr.length - 1 ? (isCompleted ? 'bg-primary' : 'bg-gray-300') : '';
+
+    return (
+      <View key={index} className="flex-row items-start mb-6 relative">
+        {/* Step Indicator */}
+        <View className="items-center mr-4">
+          <View className={`w-5 h-5 rounded-full ${circleColor} border-2 border-white`} />
+          {index < arr.length - 1 && <View className={`w-0.5 h-10 ${lineColor}`} />}
+        </View>
+
+        {/* Step Content */}
+        <View className="flex-1">
+          <Text className={`text-base font-semibold ${isCompleted || isActive ? 'text-gray-800' : 'text-gray-400'}`}>
+            {step.label}
+          </Text>
+          {(isCompleted || isActive) && step.date && (
+            <Text className="text-xs text-gray-500 mt-1">
+              {formatDate(step.date)} - {GetTime(step.date)}
+            </Text>
+          )}
+        </View>
+      </View>
+    );
+  })}
+</View>
+
+{/* Received Products */}
+{/* Received Products */}
+<View className="p-4">
+  <Text className="text-lg font-bold text-gray-800 mb-2">Received Products</Text>
+
+  {Array.isArray(Order.ReceivedItems) && Order.ReceivedItems.length > 0 ? (
+    Order.ReceivedItems.map((receivedItem) => {
+      const product = Order.ProductData.find(p => p.id === receivedItem.id);
+      if (!product) return null;
+
+      return (
+        <View
+          key={product.id}
+          className="flex-row items-center justify-between mb-3 p-4 bg-white rounded-2xl shadow-sm border border-gray-100"
+        >
+          <View className="flex-row items-center">
+            <View className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 mr-4">
+              <Image
+                source={product.image}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            </View>
+            <View>
+              <Text className="text-base font-semibold text-gray-800">{product.name}</Text>
+              <Text className="text-sm text-gray-500">{product.unit}</Text>
+              <Text className="mt-1 text-gray-600">Received: {receivedItem.receivedQty}</Text>
+              <Text className="mt-1 text-gray-600">Price: ₹{product.price.toFixed(2)}</Text>
+            </View>
+          </View>
+          <Text className="text-lg font-bold text-textPrimary">
+            ₹{(product.price * receivedItem.receivedQty).toFixed(2)}
+          </Text>
+        </View>
+      );
+    })
+  ) : (
+    <Text className="text-gray-500">No items received for this order.</Text>
+  )}
+</View>
+
+
         {/* Customer Info */}
-        <View className="p-5 mt-3 mx-4 mb-8 bg-white rounded-2xl shadow-md border border-gray-200 space-y-3">
-          <Text className="text-base font-bold text-gray-800 mb-2">Customer Information</Text>
+        <View className="p-5 mt-3 mx-4 mb-16 bg-white rounded-2xl shadow-md border border-gray-200 space-y-3">
+          <Text className="text-base font-bold text-gray-800 mb-2">Branch Information</Text>
           <View className="flex-row items-center">
             <FontAwesome name="user-circle" size={18} color="#4B5563" />
-            <Text className="ml-2 text-sm text-gray-700 font-medium">{Order.UserName}</Text>
+            <Text className="ml-2 text-sm text-gray-700 font-medium">{Order.Branch?.branchName}</Text>
           </View>
         </View>
       </ScrollView>
 {/* order.OrderStatus !== 'Delivered' && order.OrderStatus !== 'Cancelled' */}
       {/* Bottom CTA */}
 
-{
-  (Order.OrderStatus === 'Delivered' || Order.OrderStatus === 'Cancelled') && (
-    <View className="absolute bottom-8 left-0 right-0 bg-gray-50 p-4 border border-gray-200 z-20 shadow-xl">
-      <TouchableOpacity onPress={handleReorder} className="bg-primary py-3 rounded-full items-center">
-        <Text className="text-white font-bold text-lg">Reorder This Order</Text>
+<View className="absolute bottom-4 left-0 right-0 px-4 py-5 bg-white border-t border-gray-200 z-30 shadow-xl rounded-t-2xl">
+  {(Order.OrderStatus === 'Cancelled' || Order.ReceivedStatus === 'Confirmed') ? (
+    <TouchableOpacity
+      onPress={handleReorder}
+      className="bg-primary py-4 rounded-full items-center shadow-md flex-row justify-center"
+    >
+      <MaterialIcons name="repeat" size={20} color="#fff" />
+      <Text className="text-white font-bold text-lg ml-2">Reorder This Order</Text>
+    </TouchableOpacity>
+  ) : (
+    <View className="flex-row justify-between space-x-4">
+      {/* Confirm Received Button */}
+      <TouchableOpacity
+        onPress={() => setModalVisible(true)}
+        className="flex-1 flex-row items-center justify-center bg-success py-4 mx-1 rounded-full shadow-md"
+      >
+        <MaterialIcons name="check-circle" size={20} color="#fff" />
+        <Text className="ml-2 text-white font-semibold text-base">Confirm Received</Text>
+      </TouchableOpacity>
+
+      {/* Cancel Order Button */}
+      <TouchableOpacity
+        onPress={handleCancelOrder}
+        className="flex-1 flex-row items-center justify-center bg-red-500 py-4 mx-1 rounded-full shadow-md"
+      >
+        <MaterialIcons name="cancel" size={20} color="#fff" />
+        <Text className="ml-2 text-white font-semibold text-base">Cancel Order</Text>
       </TouchableOpacity>
     </View>
-  )
-}
+  )}
+</View>
+
 
       
     </>

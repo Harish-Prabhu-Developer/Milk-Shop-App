@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "617616771683",
+    "project_id": "milkapp-1b67d",
+    "storage_bucket": "milkapp-1b67d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:617616771683:android:365f03fad9c78f12db0656",
+        "android_client_info": {
+          "package_name": "com.milkapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBT8tJ7_PrEiqis6X_eAQ2JR-rEMa_5zdQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

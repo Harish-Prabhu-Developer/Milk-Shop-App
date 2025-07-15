@@ -87,8 +87,7 @@ const CustomInput: React.FC<CustomInputBoxProps> = ({
                 autoComplete={keyboardComplete}
                 keyboardType={getKeyboardType()}
                 autoCorrect={type !== 'email'}
-                autoFocus={type === 'name' || type === 'phone'}
-                autoCapitalize={type === 'email' ? 'none' : 'words'}
+                autoCapitalize={type === 'email'|| type === 'password' ? 'none' : 'words'}
             />
             {type === 'password' && (
                 <TouchableOpacity onPress={togglePasswordVisibility}>

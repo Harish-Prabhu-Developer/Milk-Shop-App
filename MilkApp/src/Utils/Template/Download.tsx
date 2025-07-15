@@ -78,8 +78,8 @@ export const InvoiceTemplate = (Order: Order) =>
     </div>
 
     <div class="info">
-      <p><strong>Customer Name:</strong> ${Order.UserName}</p>
-      <p><strong>Customer ID:</strong> ${Order.UserId}</p>
+      <p><strong>Customer Name:</strong> ${Order.Branch?.branchName}</p>
+      <p><strong>Customer ID:</strong> ${Order.Branch?.id}</p>
     </div>
 
     <table>

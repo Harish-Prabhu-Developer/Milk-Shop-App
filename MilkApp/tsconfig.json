@@ -5,6 +5,7 @@
       "./src/types"
     ],
     "types": [
+      "jest",
       "react-native"
     ],
     "baseUrl": "./",

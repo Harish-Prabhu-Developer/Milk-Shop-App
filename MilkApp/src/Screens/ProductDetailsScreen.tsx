@@ -5,7 +5,7 @@ import IncreaseButton from '@Components/Input/IncreaseButton';
 import { useDispatch } from 'react-redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AppDispatch } from '@Redux/Store';
-import { CartProduct, Product } from '@Utils/@types/Products';
+import { CartProduct } from '@Utils/@types/Products';
 import { addToCart } from '@Redux/Cart/CartSlice';
 
 const ProductDetailsScreen = () => {

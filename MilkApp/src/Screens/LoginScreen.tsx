@@ -21,7 +21,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { StatusBar } from "react-native";
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const navigation = useNavigation<StackNavigationProp<any>>(); // Assuming you have set up navigation
   // Animations
@@ -60,7 +60,7 @@ const LoginScreen = () => {
   });
 
   const handleLogin = () => {
-    console.log("Logging in with", email, password);
+    console.log("Logging in with", phone, password);
     // TODO: your login logic
     navigation.navigate("TabBar"); // Navigate to TabBar after login
   };
@@ -94,13 +94,13 @@ const LoginScreen = () => {
           {/* Form with fade-in */}
           <Animated.View style={formAnimatedStyle}>
 
-            {/* Email Field */}
+            {/* Phone Field */}
             <View className="mb-4">
               <CustomInput
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChangeText={setEmail}
+                type="phone"
+                placeholder="Enter your phone number"
+                value={phone}
+                onChangeText={setPhone}
                 iconColor="#3D8BFD"
                 cursorColor="#3D8BFD"
                 iconSize={15}
@@ -119,7 +119,7 @@ const LoginScreen = () => {
                 cursorColor="#3D8BFD"
                 placeholderTextColor="#A0AEC0"
                 eyeiconColor="#3D8BFD"
-                eyeiconSize={14}
+                eyeiconSize={16}
               />
             </View>
 
@@ -140,13 +140,6 @@ const LoginScreen = () => {
               </Text>
             </TouchableOpacity>
 
-            {/* Register Link */}
-            <View className="flex-row justify-center mb-32">
-              <Text className="text-gray-500 text-sm">Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("RegisterScreen")}>
-                <Text className="text-primary font-semibold text-sm">Register</Text>
-              </TouchableOpacity>
-            </View>
           </Animated.View>
         </View>
       </ScrollView>

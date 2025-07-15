@@ -8,15 +8,16 @@ import LoginScreen from "@Screens/LoginScreen";
 import TabBar from "@Navigation/TabBar";
 import SplashScreen from "@Screens/SplashScreen";
 import RegisterScreen from "@Screens/RegisterScreen";
-import ProductDetailsScreen from "./Screens/ProductDetailsScreen";
+import ProductDetailsScreen from "@Screens/ProductDetailsScreen";
 import Store from "./Redux/Store";
 import { Provider } from "react-redux";
 import { CartProduct, Product } from "@Utils/@types/Products";
 import CartScreen from "@Screens/CartScreen";
-import { Order } from "./Utils/@types/Order";
-import OrderDetailScreen from "./Screens/OrderDetailScreen";
+import { Order } from "@Utils/@types/Order";
+import OrderDetailScreen from "@Screens/OrderDetailScreen";
 import { Platform } from "react-native";
-import OrderScreen from "./Screens/OrderScreen";
+import OrderScreen from "@Screens/OrderScreen";
+import { requestPushNotificationPermission, requestStoragePermission } from "@Utils/PermissionFunctions/Permissions";
 
 type RootStackParamList = {
   LoginScreen: undefined;
@@ -42,39 +43,9 @@ const App = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Storage permission
-
-const requestStoragePermission = async () => {
-  if (Platform.OS === 'android') {
-    try {
-      const sdkInt = parseInt(String(Platform.constants?.Release || 0));
-      if (sdkInt <= 10) {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'We need access to save your invoice as a file.',
-            buttonPositive: 'Allow',
-            buttonNegative: 'Deny',
-          }
-        );
-
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert('Permission Denied', 'Cannot save invoices without storage access.');
-          return false;
-        }
-      }
-      return true;
-    } catch (error) {
-      console.warn('Permission error:', error);
-      Alert.alert('Permission Error', 'Something went wrong while requesting permission.');
-      return false;
-    }
-  }
-  return true; // iOS
-};
 
 useEffect(() => {
+  requestPushNotificationPermission();
   requestStoragePermission();
 }, []);
   return (

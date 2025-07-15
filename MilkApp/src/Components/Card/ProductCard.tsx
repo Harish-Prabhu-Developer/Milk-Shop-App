@@ -47,7 +47,7 @@ const ProductCard = ({ name, price, image,quantity,unit,description,nutrition, o
           className="mt-3 bg-blue-600 rounded-xl py-2"
         >
           <Text className="text-white text-center text-sm font-semibold" >
-            Add {Quantity} to Cart • ₹{(price * Quantity).toFixed(2)}
+            Add to Cart - ₹{(price * Quantity).toFixed(2)}
           </Text>
         </TouchableOpacity>
       </View>

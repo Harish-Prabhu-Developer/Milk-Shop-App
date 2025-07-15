@@ -71,6 +71,22 @@ const OrderCard = ({ Order }: OrderCardProps) => {
         </View>
       </View>
 
+{/* Cancelled Order Date */}
+{Order.OrderStatus === 'Cancelled' && Order.CancelOrderDate && (
+  <View className="mx-4 mt-4 p-4 bg-red-50 rounded-2xl border border-red-200 shadow-sm">
+    <View className="flex-row items-center mb-2">
+      <MaterialIcons name="cancel" size={22} color="#DC2626" />
+      <Text className="ml-2 text-lg font-bold text-red-700">Order Cancelled</Text>
+    </View>
+    <View className="flex-row items-center space-x-2">
+      <MaterialIcons name="access-time" size={18} color="#DC2626" />
+      <Text className="text-sm pl-1 text-gray-700 font-medium">
+        {`${GetTime(Order.CancelOrderDate)} ${formatDate(Order.CancelOrderDate)} (${GetDay(Order.CancelOrderDate)})`}
+      </Text>
+    </View>
+  </View>
+)}
+
       <View className="border-b border-gray-200 mb-4" />
 
       <View className="mb-4 space-y-2 gap-4">
@@ -90,14 +106,14 @@ const OrderCard = ({ Order }: OrderCardProps) => {
             {Order.PaymentStatus}
           </Text>
         </View>
-        <View className="flex-row justify-between items-center">
+        {/* <View className="flex-row justify-between items-center">
           <Text className="text-base text-gray-600">Delivery</Text>
           <Text
             className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor[Order.DeliveryStatus as keyof typeof getStatusColor]}`}
           >
             {Order.DeliveryStatus}
           </Text>
-        </View>
+        </View> */}
       </View>
 
       <View className="border-b border-gray-200 mb-4" />
