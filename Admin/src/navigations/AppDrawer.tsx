@@ -11,6 +11,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import CustomDrawerContent from './CustomDrawerContent';
+import PlaceScreen from '../screens/Place/PlaceScreen';
 
 type DrawerParamList = {
   Dashboard: undefined;
@@ -18,6 +19,7 @@ type DrawerParamList = {
   ProfileScreen: undefined;
   ProductScreen: undefined;
   UserScreen: undefined;
+  PlaceScreen:undefined;
   ReportScreen: undefined;
 };
 
@@ -31,14 +33,14 @@ const AppDrawer = () => {
         headerShown: false,
         drawerStyle: {
           backgroundColor: '#f9f9f9',
-          borderTopRightRadius: 20,
-          borderBottomRightRadius: 20,
-          width: 270,
+          borderTopRightRadius: '4%',
+          borderBottomRightRadius: '4%',
+          width: '75%',
         },
         drawerActiveTintColor: '#2563eb',
         drawerInactiveTintColor: '#555',
         drawerLabelStyle: {
-          marginLeft: -10,
+          marginLeft: '-6%',
           fontSize: 16,
         },
       }}
@@ -73,6 +75,14 @@ const AppDrawer = () => {
         options={{
           drawerLabel: 'Users',
           drawerIcon: ({ color }) => <Ionicons name="people-outline" size={20} color={color} className='p-2'/>,
+        }}
+      />
+      <Drawer.Screen
+        name="PlaceScreen"
+        component={PlaceScreen}
+        options={{
+          drawerLabel: 'Delivery Places',
+          drawerIcon: ({ color }) => <MaterialIcons name="location-on" size={20} color={color} className='p-2'/>,
         }}
       />
       <Drawer.Screen

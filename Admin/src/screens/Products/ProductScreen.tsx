@@ -1,10 +1,13 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StatusBar, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import Header from '../../components/Header'
 
 const ProductScreen = () => {
   return (
-    <View>
-      <Text>ProductScreen</Text>
+    <View className='flex-1 bg-white'>
+      <StatusBar barStyle={'light-content'} />
+      {/* Header */}
+      <Header title={'Products'} />
     </View>
   )
 }

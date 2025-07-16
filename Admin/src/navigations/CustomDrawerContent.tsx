@@ -6,9 +6,9 @@ const CustomDrawerContent = (props: any) => {
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
       {/* Profile Header */}
-      <View className="bg-primary p-5 pb-6 rounded-b-2xl">
+      <View className="bg-primary w-full p-4 rounded-b-xl">
         <Image
-          source={{ uri: 'https://i.pravatar.cc/100' }}
+          source={require('../assets/Images/Profile.png')}
           className="w-16 h-16 rounded-full mb-3"
         />
         <Text className="text-white text-lg font-bold">John Doe</Text>
