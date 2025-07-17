@@ -1,11 +1,10 @@
-import { StatusBar, StyleSheet, Text, View } from 'react-native'
+import { View } from 'react-native'
 import React from 'react'
 import Header from '../../components/Header'
 
 const ReportScreen = () => {
   return (
     <View className='flex-1 bg-white'>
-      <StatusBar barStyle={'light-content'} />
       {/* Header */}
       <Header title={'Reports'} />
     </View>
@@ -13,5 +12,3 @@ const ReportScreen = () => {
 }
 
 export default ReportScreen
-
-const styles = StyleSheet.create({})
