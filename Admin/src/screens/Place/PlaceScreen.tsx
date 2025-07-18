@@ -1,83 +1,81 @@
-import { FlatList, Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, Text, TouchableOpacity, View } from 'react-native';
 import React, { useState } from 'react';
 import Header from '../../components/Header';
-import { StatusBar } from 'react-native';
-import FloatingButton from '../../components/FloatingButton';
 import { useDispatch, useSelector } from 'react-redux';
 import { Place } from '../../@types/Place';
 import PlaceCard from '../../components/Place/PlaceCard';
 import PlaceForm from '../../components/Place/PlaceForm';
-import { removePlace } from '../../redux/slices/placeSlice';
 import { AppDispatch, RootState } from '../../redux/store';
-
-const ROUTES = ['ROUTE 1', 'ROUTE 2', 'ROUTE 3'] as const;
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const PlaceScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
-
   const places: Place[] =
     useSelector((state: RootState) => state.place.places) || [];
-  console.log('Places:', places);
 
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [formType, setFormType] = useState<'places' | 'routes' | 'vehicles'>(
+    'places',
+  );
+  const [openNestedFBtn, setOpenNestedFBtn] = useState(false);
 
-  const groupedPlaces = ROUTES.map(routeType => ({
-    routeType,
-    data: places.filter(p => p['Route type'] === routeType),
-  }));
+  const openForm = (type: 'places' | 'routes' | 'vehicles') => {
+    setModalVisible(true);
+    setFormType(type);
+    setOpenNestedFBtn(false);
+  };
+
+  const renderFabButton = (
+    label: string,
+    icon: string,
+    bottom: number,
+    type: 'places' | 'routes' | 'vehicles',
+  ) => (
+    <TouchableOpacity
+      className={`absolute right-5 bg-primary py-2 px-4 gap-2 flex-row items-center justify-center rounded-xl`}
+      style={{ bottom }}
+      onPress={() => openForm(type)}
+    >
+      <MaterialIcons name={icon} size={24} color="white" />
+      <Text className="text-white font-bold text-lg">{label}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View className="flex-1 bg-white">
-      <StatusBar barStyle={'light-content'} />
       <Header title="Delivery Places" />
 
-      <View className='mb-36'>
-        <FlatList
-          data={groupedPlaces}
-          keyExtractor={item => item.routeType}
-          renderItem={({ item }) => (
-            <View className="mb-4 px-4">
-              <Text className="text-lg font-bold text-gray-700 mb-2">
-                {item.routeType}
-              </Text>
-              {item.data.length === 0 ? (
-                <Text className="text-gray-400 italic text-center">
-                  No places found
-                </Text>
-              ) : (
-                item.data.map((place: Place) => (
-                  <PlaceCard
-                    key={place.id}
-                    place={place}
-                    onEdit={() => {
-                      setSelectedPlace(place);
-                      setModalVisible(true);
-                    }}
-                    onDelete={() => dispatch(removePlace(place.id))}
-                  />
-                ))
-              )}
-            </View>
-          )}
+      {/* List Rendering (optional to enable) */}
+      {/* Future: Grouped FlatList here */}
+
+      {/* Main Floating Action Button */}
+      <TouchableOpacity
+        className="absolute bottom-10 right-5 bg-primary w-16 h-16 flex items-center justify-center rounded-full"
+        onPress={() => setOpenNestedFBtn(!openNestedFBtn)}
+      >
+        <MaterialIcons
+          name={openNestedFBtn ? 'arrow-drop-up' : 'add'}
+          size={30}
+          color="white"
         />
-      </View>
+      </TouchableOpacity>
 
-      {/* Floating Add Button */}
-      <FloatingButton
-        onPress={() => {
-          setSelectedPlace(null);
-          setModalVisible(true);
-        }}
-      />
+      {/* Nested Buttons */}
+      {openNestedFBtn && (
+        <>
+          {renderFabButton('Places', 'add', 230, 'places')}
+          {renderFabButton('Vehicles', 'add', 170, 'vehicles')}
+          {renderFabButton('Routes', 'add', 110, 'routes')}
+        </>
+      )}
 
-      {/* Modal Form */}
+      {/* Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View className="flex-1 justify-end bg-black/40">
           <View className="bg-white rounded-t-3xl p-4">
             <PlaceForm
-              initialData={selectedPlace}
               onClose={() => setModalVisible(false)}
+              formtype={formType}
             />
           </View>
         </View>
@@ -87,5 +85,3 @@ const PlaceScreen = () => {
 };
 
 export default PlaceScreen;
-
-const styles = StyleSheet.create({});

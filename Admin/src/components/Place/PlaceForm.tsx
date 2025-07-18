@@ -1,106 +1,94 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { Place } from '../../@types/Place';
-import { useDispatch } from 'react-redux';
-import { addPlace, editPlace } from '../../redux/slices/placeSlice';
+import {
+  View,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
+import React, { useState } from 'react';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-type PlaceFormProps = {
-  initialData?: Place | null;
+interface PlaceFormProps {
   onClose: () => void;
+  formtype: 'places' | 'routes' | 'vehicles';
+}
+
+const FORM_TYPES: Record<'places' | 'routes' | 'vehicles', string> = {
+  places: 'Place',
+  routes: 'Route',
+  vehicles: 'Vehicle',
 };
 
-const PlaceForm = ({ initialData, onClose }: PlaceFormProps) => {
-  const dispatch = useDispatch();
+const PlaceForm = ({ onClose, formtype }: PlaceFormProps) => {
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [value, setValue] = useState(null);
+  const [items, setItems] = useState([
+    { label: 'Apple', value: 'apple' },
+    { label: 'Banana', value: 'banana' },
+    { label: 'Pear', value: 'pear' },
+  ]);
 
-  const [routeType, setRouteType] = useState<'ROUTE 1' | 'ROUTE 2' | 'ROUTE 3'>('ROUTE 1');
-  const [routeName, setRouteName] = useState('');
-  const [open, setOpen] = useState(false);
-
-  const routeTypes = [
-    { label: 'ROUTE 1', value: 'ROUTE 1' },
-    { label: 'ROUTE 2', value: 'ROUTE 2' },
-    { label: 'ROUTE 3', value: 'ROUTE 3' },
-  ];
-
-  useEffect(() => {
-    if (initialData) {
-      setRouteType(initialData['Route type']);
-      setRouteName(initialData['Route Name']);
-    }
-  }, [initialData]);
-
-  const handleSubmit = () => {
-    const newPlace: Place = {
-      id: initialData?.id ?? `${Date.now().toString()}${Math.floor(Math.random() * 1000)}`,
-      'Route type': routeType,
-      'Route Name': routeName.trim(),
-    };
-
-    if (initialData) {
-      dispatch(editPlace(newPlace));
-    } else {
-      dispatch(addPlace(newPlace));
-    }
-
-    onClose();
-  };
+  const renderDropDown = (label: string, placeholder: string) => (
+    <View>
+      <Text className="text-lg font-bold text-gray-800 py-4">{label}</Text>
+      <DropDownPicker
+        open={openDropdown}
+        value={value}
+        items={items}
+        setOpen={setOpenDropdown}
+        setValue={setValue}
+        setItems={setItems}
+        placeholder={placeholder}
+        dropDownContainerStyle={{
+          backgroundColor: '#fff',
+          borderWidth: 1,
+          borderColor: '#000',
+        }}
+      />
+    </View>
+  );
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="space-y-5"
     >
-      <Text className="text-xl font-bold text-gray-800 my-2">
-        {initialData ? 'Edit Delivery Place' : 'Add Delivery Place'}
+      <Text className="text-xl font-bold text-gray-800 my-3">
+        {`Edit / Add ${FORM_TYPES[formtype]}`}
       </Text>
 
-      {/* DropDown */}
-      <View style={{ zIndex: 1000 ,marginVertical:'4%' }}>
-        <DropDownPicker
-          open={open}
-          value={routeType}
-          items={routeTypes}
-          setOpen={setOpen}
-          setValue={setRouteType}
-          placeholder="Select Route Type"
-          onChangeValue={(value) => setRouteType(value as 'ROUTE 1' | 'ROUTE 2' | 'ROUTE 3')}
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownBox}
-          placeholderStyle={{ color: '#3D8BFD' }}
-          labelStyle={{ color: '#3D8BFD', fontSize: 16 }}
-          
-        />
-      </View>
+      {formtype === 'places' && (
+        <>
+          <View>
+            <Text className="text-lg font-bold text-gray-800 py-4">
+              Route Group Name
+            </Text>
+            <TextInput
+              placeholder="Enter Route Group Name"
+              placeholderTextColor="#000"
+              className="w-full border border-gray-800 px-4 py-4 rounded-lg text-lg text-gray-800"
+            />
+          </View>
 
-      {/* Route Name Input */}
-      <TextInput
-        placeholder="Enter Route Name"
-        value={routeName}
-        onChangeText={setRouteName}
-        className="border border-gray-300 p-4 shadow-slate-600 my-4 rounded-xl text-base text-gray-800 bg-white focus:border-primary"
-        placeholderTextColor="#3D8BFD"
+          {renderDropDown('Select Route Details', 'Choose a route')}
+          {renderDropDown('Select Vehicle Details', 'Choose a vehicle')}
+        </>
+      )}
 
-      />
+      {/* Future support for 'routes' and 'vehicles' forms goes here */}
 
-      {/* Buttons */}
-      <View className="flex-row justify-between pt-4">
-        <TouchableOpacity
-          onPress={handleSubmit}
-          className="bg-primary py-3 px-6 rounded-xl flex-1 mr-2"
-        >
-          <Text className="text-white font-semibold text-center text-base">
-            {initialData ? 'Update' : 'Add'} Place
+      <View className="flex-row w-full items-center justify-evenly my-4">
+        <TouchableOpacity className="bg-primary px-3 py-2 rounded-lg items-center shadow-lg shadow-gray-900">
+          <Text className="text-lg font-bold text-white">
+            Add {FORM_TYPES[formtype]}
           </Text>
         </TouchableOpacity>
-
         <TouchableOpacity
+          className="border border-primary bg-white rounded-lg px-5 py-2"
           onPress={onClose}
-          className="border border-primary py-3 px-6 rounded-xl flex-1 ml-2 bg-white"
         >
-          <Text className="text-primary font-semibold text-center text-base">
-            Cancel
-          </Text>
+          <Text className="text-lg font-bold text-primary">Cancel</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -108,22 +96,3 @@ const PlaceForm = ({ initialData, onClose }: PlaceFormProps) => {
 };
 
 export default PlaceForm;
-
-const styles = StyleSheet.create({
-  dropdown: {
-    borderRadius: '4%',
-    borderColor: '#3D8BFD',
-    backgroundColor: '#fff',
-    paddingHorizontal: '2%',
-    minHeight: 50,
-    zIndex: 1000,
-    color: '#3D8BFD',
-  },
-  dropdownBox: {
-    borderRadius: '4%',
-    borderColor: '#3D8BFD',
-    backgroundColor: '#fff',
-    zIndex: 999,
-  },
-
-});
