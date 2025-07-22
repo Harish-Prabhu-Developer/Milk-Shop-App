@@ -1,3 +1,4 @@
+// ProductCard.tsx
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { Product } from '../../@types/Product';
@@ -36,20 +37,23 @@ const ProductCard = ({ product, onPress, onEdit, onDelete }: ProductCardProps) =
 
         {/* Product Info */}
         <View className="flex-1 justify-between">
-          <Text className="text-lg font-semibold text-gray-900">{product.name}</Text>
+          <Text className="text-xl font-semibold text-gray-900">{product.name}</Text>
 
           <View className="flex-row items-center justify-between mt-1">
-            <Text className="text-sm text-gray-700">Unit: {product.unit}</Text>
-            <Text className="text-sm font-semibold text-primary">₹{product.price.toFixed(2)}</Text>
+            <Text className="text-md text-gray-700">Unit: {product.unit}</Text>
+            <Text className="text-md font-semibold text-primary">
+              ₹{(typeof product.price === 'number' ? product.price : 0).toFixed(2)}
+            </Text>
+
           </View>
 
           {product.category ? (
-            <Text className="text-sm text-gray-500 mt-1">Category: {product.category}</Text>
+            <Text className="text-md text-gray-500 mt-1">Category: {product.category}</Text>
           ) : null}
 
 
           <Text
-            className={`text-xs font-semibold mt-1 ${
+            className={`text-sm font-semibold mt-1 ${
               product.isActive ? 'text-green-600' : 'text-red-500'
             }`}
           >

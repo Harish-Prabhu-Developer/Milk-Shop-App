@@ -1,4 +1,3 @@
-// ProductDetailScreen.tsx
 import {
   View,
   Text,
@@ -7,22 +6,49 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
+  ToastAndroid,
 } from 'react-native';
 import React, { useState } from 'react';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { Product } from '../../@types/Product';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ProductForm from '../../components/Product/ProductForm';
+import { AppDispatch } from '../../redux/store';
+import { useDispatch } from 'react-redux';
+import { removeProduct, updateProduct } from '../../redux/slices/productSlice';
 
 const ProductDetailScreen = () => {
   const route = useRoute<RouteProp<any>>();
-  const navigation = useNavigation();
+  const dispatch = useDispatch<AppDispatch>();
   const product: Product = route.params?.Product;
 
+  const navigation = useNavigation();
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const handleEdit = () => setEditModalVisible(true);
 
-  const handleEdit = () => {
-    setEditModalVisible(true);
+  const handleDeleteProduct = async () => {
+    try {
+      const res = await dispatch(removeProduct(product?.id));
+      if (res.type === 'products/removeProduct') {
+        ToastAndroid.show('Product Deleted', ToastAndroid.SHORT);
+      }
+
+    } catch (error: any) {
+      ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
+    }
+    navigation.goBack();
+  };
+  const handleEditProduct = async (PRODUCT: Product) => {
+    try {
+      const res = await dispatch(updateProduct(PRODUCT));
+      if (res.type === 'products/updateProduct') {
+        ToastAndroid.show('Product Updated', ToastAndroid.SHORT);
+      }
+      
+    } catch (error: any) {
+      ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
+    }
+    navigation.goBack();
   };
 
   const handleDelete = () => {
@@ -34,10 +60,7 @@ const ProductDetailScreen = () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            console.log('Deleted:', product?.id);
-            navigation.goBack();
-          },
+          onPress: handleDeleteProduct,
         },
       ],
     );
@@ -52,7 +75,7 @@ const ProductDetailScreen = () => {
             <ProductForm
               initialValues={product}
               onClose={() => setEditModalVisible(false)}
-              onSubmit={Product => console.log('Product : ', Product)}
+              onSubmit={(updatedProduct) =>handleEditProduct(updatedProduct)}
             />
           </View>
         </View>
@@ -61,11 +84,11 @@ const ProductDetailScreen = () => {
       {/* Main Screen */}
       <View className="flex-1 bg-white">
         {/* Header */}
-        <View className="flex-row items-center justify-between px-4 pt-14 pb-4 bg-primary">
+        <View className="flex-row items-center justify-between px-4 pt-14 pb-4 bg-primary shadow">
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <MaterialIcons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text className="text-lg font-semibold text-white">
+          <Text className="text-2xl font-bold text-white">
             Product Details
           </Text>
           <View className="w-6" />
@@ -76,9 +99,9 @@ const ProductDetailScreen = () => {
           contentContainerStyle={{ paddingBottom: 120 }}
           className="px-6 py-6"
         >
-          {/* Product Image */}
+          {/* Image Section */}
           <View className="items-center mb-6">
-            <View className="w-44 h-44 rounded-2xl overflow-hidden bg-gray-100 shadow">
+            <View className="w-44 h-44 rounded-2xl overflow-hidden bg-gray-100 shadow-lg">
               {product?.image ? (
                 <Image
                   source={
@@ -95,63 +118,77 @@ const ProductDetailScreen = () => {
                 </View>
               )}
             </View>
-          </View>
-
-          {/* Product Info */}
-          <View className="space-y-5">
-            <Text className="text-2xl font-bold text-center text-gray-900">
+            <Text className="text-2xl font-bold text-gray-900 mt-4">
               {product?.name}
             </Text>
+          </View>
 
-            <View className="flex-row justify-between px-1">
-              <Text className="text-base text-gray-700">
-                Unit:{' '}
-                <Text className="font-semibold text-gray-800">
-                  {product?.unit}
-                </Text>
+          {/* Price & Unit */}
+          <View className="flex-row justify-between px-4 py-3 rounded-xl mb-4 shadow-sm">
+            <Text className="text-base text-gray-700 font-medium">
+              Unit: <Text className="text-gray-900">{product?.unit}</Text>
+            </Text>
+            <Text className="text-base text-gray-700 font-medium">
+              Price:{' '}
+              <Text className="text-primary font-semibold">
+                ₹{product?.price?.toFixed(2)}
               </Text>
-              <Text className="text-base text-gray-700">
-                Price:{' '}
-                <Text className="font-semibold text-primary">
-                  ₹{product?.price.toFixed(2)}
-                </Text>
+            </Text>
+          </View>
+
+          {/* Category */}
+          {product?.category && (
+            <View className=" px-4 py-3 rounded-xl mb-4 shadow-sm">
+              <Text className="text-base font-medium text-gray-700">
+                Category:{' '}
+                <Text className="text-gray-900">{product.category}</Text>
               </Text>
             </View>
+          )}
 
-            {product?.category && (
-              <Text className="text-base text-gray-600">
-                Category:{' '}
-                <Text className="font-medium text-gray-800">
-                  {product.category}
-                </Text>
+          {/* Description */}
+          {product?.description && (
+            <View className="bg-white border border-gray-200 rounded-xl p-4 mb-4 shadow-sm">
+              <Text className="text-lg font-semibold text-gray-900 mb-2">
+                Description
               </Text>
-            )}
+              <Text className="text-gray-700 text-sm leading-relaxed">
+                {product.description}
+              </Text>
+            </View>
+          )}
 
-            {product?.description && (
-              <View>
-                <Text className="text-sm text-gray-500 font-medium mb-1">
-                  Description
-                </Text>
-                <Text className="text-base text-gray-800">
-                  {product.description}
-                </Text>
-              </View>
-            )}
+          {/* Nutrition Info */}
+          {product?.nutrition && (
+            <View className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-4">
+              <Text className="text-lg font-semibold text-gray-900 mb-2">
+                Nutritional Info
+              </Text>
+              {product.nutrition.split(',').map((item, index) => {
+                const [label, value] = item.split(':');
+                return (
+                  <View key={index} className="flex-row mb-1">
+                    <Text className="text-sm font-medium text-gray-800 w-28">
+                      {label?.trim().charAt(0).toUpperCase() +
+                        label?.trim().slice(1)}
+                      :
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      {value?.trim()}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
 
-            {product?.nutrition && (
-              <View>
-                <Text className="text-sm text-gray-500 font-medium mb-1">
-                  Nutrition Info
-                </Text>
-                <Text className="text-base text-gray-800">
-                  {product.nutrition}
-                </Text>
-              </View>
-            )}
-
+          {/* Active Status */}
+          <View className="mt-2 items-end">
             <Text
-              className={`text-sm font-bold mt-2 ${
-                product?.isActive ? 'text-green-600' : 'text-red-500'
+              className={`text-sm font-bold px-4 py-1 rounded-full ${
+                product?.isActive
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-600'
               }`}
             >
               {product?.isActive ? 'Active' : 'Inactive'}
@@ -159,20 +196,20 @@ const ProductDetailScreen = () => {
           </View>
         </ScrollView>
 
-        {/* Bottom Action Buttons */}
-        <View className="absolute bottom-0 left-0 right-0 bg-white px-6 py-4 border-t border-gray-200 flex-row justify-between">
+        {/* Action Buttons */}
+        <View className="absolute bottom-0 left-0 right-0 bg-white px-6 py-4 border-t border-gray-200 flex-row justify-between shadow-md">
           <TouchableOpacity
             onPress={handleEdit}
-            className="flex-1 bg-blue-600 py-3 rounded-xl mr-2 items-center"
+            className="flex-1 bg-primary py-3 mb-2 rounded-xl mr-2 items-center"
           >
-            <Text className="text-white font-semibold text-base">Edit</Text>
+            <Text className="text-white font-semibold text-md">Edit</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={handleDelete}
-            className="flex-1 bg-red-500 py-3 rounded-xl ml-2 items-center"
+            className="flex-1 bg-red-500 py-3 mb-2 rounded-xl ml-2 items-center"
           >
-            <Text className="text-white font-semibold text-base">Delete</Text>
+            <Text className="text-white font-semibold text-md">Delete</Text>
           </TouchableOpacity>
         </View>
       </View>

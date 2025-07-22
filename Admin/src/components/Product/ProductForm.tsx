@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { Product } from '../../@types/Product';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 interface ProductFormProps {
   onClose: () => void;
@@ -50,6 +51,12 @@ useEffect(() => {
   }
 }, [initialValues]);
 
+  // Dropdown states for Category
+  const [CategoryOpen, setCategoryOpen] = useState(false);
+  const [CategoryValue, setCategoryValue] = useState<string | null>(null);
+  const [CategoryItems, setCategoryItems] = useState([
+    { label: 'Milk', value: '3439009fdjshfdk34' },
+  ]);
 
   const handleChange = (key: keyof Product, value: any) => {
     setProduct({ ...product, [key]: value });
@@ -84,12 +91,15 @@ useEffect(() => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 "
     >
-  <Text className="text-white font-bold text-lg">
+  <Text className="text-black font-bold text-2xl py-4">
     {initialValues ? 'Update Product' : 'Add Product'}
   </Text>
 
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                  nestedScrollEnabled={true}>
         {/* Product Image */}
         <TouchableOpacity
           // onPress={handleImagePick}
@@ -147,13 +157,23 @@ useEffect(() => {
 
         {/* Category */}
         <Text className="text-lg font-bold text-gray-800 py-4">Category</Text>
-        <TextInput
-          placeholder="e.g., Milk, Curd, Paneer"
-          value={product.category}
-          onChangeText={text => handleChange('category', text)}
-          placeholderTextColor={'gray'}
-          className="w-full border border-gray-800 px-4 py-4 rounded-lg text-lg text-gray-800"
-        />
+            <DropDownPicker
+              open={CategoryOpen}
+              value={CategoryValue}
+              items={CategoryItems}
+              setOpen={setCategoryOpen}
+              setValue={(val) => {
+                setCategoryValue(val);
+                handleChange('category', val);
+              }}
+              setItems={setCategoryItems}
+              placeholder="Select Category"
+              placeholderStyle={{ color: 'gray' }}
+              listMode="SCROLLVIEW" // ✅ Use ScrollView instead of FlatList
+              zIndex={1000}
+              zIndexInverse={1000}
+            />
+
 
         {/* Description */}
         <Text className="text-lg font-bold text-gray-800 py-4">
@@ -197,7 +217,7 @@ useEffect(() => {
             className="bg-primary px-6 py-3 rounded-lg"
             onPress={handleSubmit}
           >
-            <Text className="text-white font-bold text-lg">Add Product</Text>
+            <Text className="text-white font-bold text-lg">{initialValues?`Update`:`Add`} Product</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
