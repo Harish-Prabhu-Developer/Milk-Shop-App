@@ -12,6 +12,7 @@ export interface Route {
 
 // Define structure for company vehicle info
 export interface VehicleDetails {
+  id: string;
   type: 'COMPANY VEHICLE'|'PRIVATE VEHICLE'|'CUSTOMER VEHICLE';
   location: string;     // e.g., "CHENGALPATTU"
   distance?: string;    // e.g., "99 KMS" (optional)

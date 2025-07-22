@@ -1,11 +1,12 @@
 import {configureStore} from '@reduxjs/toolkit';
 import placeReducer from './slices/placeSlice';
 import userReducer from './slices/userSlice';
-
+import productReducer from './slices/productSlice';
 const store=configureStore({
     reducer:{
         place:placeReducer,
         user:userReducer,
+        product:productReducer,
 
     },
 

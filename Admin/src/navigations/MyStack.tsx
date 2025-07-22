@@ -3,12 +3,15 @@ import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import AppDrawer from './AppDrawer';
 import { useState } from 'react';
+import { Product } from '../@types/Product';
+import ProductDetailScreen from '../screens/Products/ProductDetailScreen';
 
 
 type RootStackParamList = {
     LoginScreen: undefined;
     RegisterScreen: undefined;
-    Drawer: undefined
+    Drawer: undefined;
+    ProductDetailScreen: { Product: Product };
 }
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -21,6 +24,7 @@ const MyStack = () => {
         <Stack.Screen name='LoginScreen' component={LoginScreen} />
         <Stack.Screen name='RegisterScreen' component={RegisterScreen} />
         <Stack.Screen name='Drawer' component={AppDrawer} />
+        <Stack.Screen name='ProductDetailScreen' component={ProductDetailScreen} />
     </Stack.Navigator>
   )
 }
