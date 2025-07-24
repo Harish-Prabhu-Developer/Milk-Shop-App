@@ -1,28 +1,43 @@
+// PlaceScreen.tsx
 import { Modal, Text, TouchableOpacity, View } from 'react-native';
 import React, { useState } from 'react';
 import Header from '../../components/Header';
 import { useDispatch, useSelector } from 'react-redux';
-import { Place } from '../../@types/Place';
+import { Place, Route, VehicleDetails } from '../../@types/Place';
 import PlaceCard from '../../components/Place/PlaceCard';
 import PlaceForm from '../../components/Place/PlaceForm';
 import { AppDispatch, RootState } from '../../redux/store';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
+
 const PlaceScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const places: Place[] =
-    useSelector((state: RootState) => state.place.places) || [];
+
+  const places: Place[] = useSelector((state: RootState) => state.place.places) || [];
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [formType, setFormType] = useState<'places' | 'routes' | 'vehicles'>(
-    'places',
-  );
+  const [formType, setFormType] = useState<'places' | 'routes' | 'vehicles'>('places');
   const [openNestedFBtn, setOpenNestedFBtn] = useState(false);
 
   const openForm = (type: 'places' | 'routes' | 'vehicles') => {
-    setModalVisible(true);
     setFormType(type);
+    setModalVisible(true);
     setOpenNestedFBtn(false);
+  };
+
+  const handleFormSubmit = (data: Place | Route | VehicleDetails) => {
+    if (formType === 'places') {
+      console.log("PlacesData : ",data);
+      // dispatch(addPlace(data as Place));
+    } else if (formType === 'routes') {
+      console.log("RoutesData : ",data);
+      // dispatch(addRoute(data as Route));
+    } else if (formType === 'vehicles') {
+      console.log("VehiclesData : ",data);
+      // dispatch(addVehicle(data as VehicleDetails));
+    }
+
+    setModalVisible(false);
   };
 
   const renderFabButton = (
@@ -32,7 +47,7 @@ const PlaceScreen = () => {
     type: 'places' | 'routes' | 'vehicles',
   ) => (
     <TouchableOpacity
-      className={`absolute right-5 bg-primary py-2 px-4 gap-2 flex-row items-center justify-center rounded-xl`}
+      className="absolute right-5 bg-primary py-2 px-4 gap-2 flex-row items-center justify-center rounded-xl"
       style={{ bottom }}
       onPress={() => openForm(type)}
     >
@@ -45,10 +60,9 @@ const PlaceScreen = () => {
     <View className="flex-1 bg-white">
       <Header title="Delivery Places" />
 
-      {/* List Rendering (optional to enable) */}
-      {/* Future: Grouped FlatList here */}
+      {/* List Rendering or FlatList can be added here */}
 
-      {/* Main Floating Action Button */}
+      {/* Main FAB */}
       <TouchableOpacity
         className="absolute bottom-10 right-5 bg-primary w-16 h-16 flex items-center justify-center rounded-full"
         onPress={() => setOpenNestedFBtn(!openNestedFBtn)}
@@ -75,7 +89,9 @@ const PlaceScreen = () => {
           <View className="bg-white rounded-t-3xl p-4">
             <PlaceForm
               onClose={() => setModalVisible(false)}
+              onSubmit={handleFormSubmit}
               formtype={formType}
+              initialValues={{}} // future: pass selected data for editing
             />
           </View>
         </View>

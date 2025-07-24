@@ -1,3 +1,4 @@
+// ProductScreen.tsx
 import { FlatList, Modal, Text, ToastAndroid, View } from 'react-native';
 import React, { useState } from 'react';
 import Header from '../../components/Header';

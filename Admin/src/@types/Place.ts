@@ -20,7 +20,7 @@ export interface VehicleDetails {
 
 // Define the full Place structure
 export interface Place {
-  _id: string;
+  id: string;
   RouteGroup: string;      // Could be the zone name or city group
   Route: Route[];            // Main route info (ROUTE 1, 2, 3, ADDITIONAL)
   VehicleDetails?: VehicleDetails; // Optional vehicle info (company vehicle destinations)

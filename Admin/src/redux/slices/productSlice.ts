@@ -102,11 +102,19 @@ const productSlice = createSlice({
       state.products = state.products.filter(p => p.id !== action.payload);
     },
     updateProduct: (state, action: PayloadAction<Product>) => {
-      const index = state.products.findIndex(p => p.id === action.payload.id);
+      const idToUpdate = String(action.payload.id);
+      const index = state.products.findIndex(p => String(p.id) === idToUpdate);
       if (index !== -1) {
-        state.products[index] = action.payload;
+        state.products[index] = {
+          ...action.payload,
+          id: idToUpdate, // Ensure ID remains consistent
+        };
+      } else {
+        console.warn(`Product with id ${idToUpdate} not found`);
       }
     },
+
+
   },
 });
 
