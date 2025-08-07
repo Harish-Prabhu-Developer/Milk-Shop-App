@@ -20,14 +20,24 @@ import { Platform } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 
 // Props
-  type PlaceFormProps = {
-    onClose: () => void;
-    onSubmit: (data: Place|Route,type:'Place'|'Route',EditStatus:boolean) => void;
-    formtype: 'Place' | 'Route';
-    initialValues?: Partial<Place>;
-    RouteID:string;
-  };
-const PlaceForm = ({ onClose, onSubmit, initialValues, formtype,RouteID }:PlaceFormProps) => {
+type PlaceFormProps = {
+  onClose: () => void;
+  onSubmit: (
+    data: Place | Route,
+    type: 'Place' | 'Route',
+    EditStatus: boolean,
+  ) => void;
+  formtype: 'Place' | 'Route';
+  initialValues?: Partial<Place | null>;
+  RouteID: string;
+};
+const PlaceForm = ({
+  onClose,
+  onSubmit,
+  initialValues,
+  formtype,
+  RouteID,
+}: PlaceFormProps) => {
   const [Data, setData] = useState({
     RouteGroup: initialValues?.RouteGroup || '',
     location: initialValues?.location || '',
@@ -62,30 +72,55 @@ const PlaceForm = ({ onClose, onSubmit, initialValues, formtype,RouteID }:PlaceF
       setRouteTypeValue(initialValues?.Route?.[0]?.['Route type'] || null);
       setBranchName(initialValues?.Route?.[0]?.['Branch Name'] || '');
     }
-    console.log(initialValues,"initial");
-    
+    console.log(initialValues, 'initial');
   }, [formtype]);
 
   const handleSubmit = () => {
     if (formtype === 'Place') {
-      const place: Place = {
-        ...Data,
-        type: Typevalue || 'COMPANY VEHICLE',
-      };
- 
-      onSubmit(place, 'Place', initialValues? true : false);
-    } else if (formtype === 'Route') {
-      if (!RouteTypevalue || !branchName.trim()) {
-        Alert.alert('Missing Fields', 'Please fill both Route Type and Branch Name');
-        return;
-      }
-    const newRoute: Route = {
-      id:  initialValues?.Route?.[0].id||`${Date.now()}`,
-      'Route type': RouteTypevalue as ROUTETYPES,
-      'Branch Name': branchName.trim(),
-    };
+      if (initialValues) {
+        const updatedplace: Place = {
+          ...Data,
+          type: Typevalue || 'COMPANY VEHICLE',
+        };
 
-      onSubmit(newRoute, 'Route',initialValues? true : false);
+        onSubmit(updatedplace, 'Place', true);
+      } else {
+        const newPlace: Place = {
+          id: Data.id,
+          location: Data.location,
+          type: Typevalue || 'COMPANY VEHICLE',
+          RouteGroup: Data.RouteGroup,
+          distance: Data.distance,
+          Route: Data.Route || [],
+        };
+        onSubmit(newPlace, 'Place', false);
+      }
+    } else if (formtype === 'Route') {
+      if (initialValues?.Route?.length===1) {
+        const updatedRoute: Route = {
+          id: initialValues?.Route?.[0].id || Date.now().toString(),
+          'Route type': RouteTypevalue as ROUTETYPES,
+          'Branch Name': branchName.trim(),
+        };
+
+
+        onSubmit(updatedRoute, 'Route', true);
+      } else {
+        if (!RouteTypevalue || !branchName.trim()) {
+          Alert.alert(
+            'Missing Fields',
+            'Please fill both Route Type and Branch Name',
+          );
+          return;
+        }
+        const newRoute: Route = {
+          id: Date.now().toString(),
+          'Route type': RouteTypevalue as ROUTETYPES,
+          'Branch Name': branchName.trim(),
+        };
+
+        onSubmit(newRoute, 'Route', false);
+      }
     }
     onClose();
   };
@@ -124,11 +159,22 @@ const PlaceForm = ({ onClose, onSubmit, initialValues, formtype,RouteID }:PlaceF
               setOpen={setOpenType}
               setValue={setTypeValue}
               onChangeValue={value => {
-                if (value) setData({ ...Data, type: value as 'COMPANY VEHICLE' | 'PRIVATE VEHICLE' | 'CUSTOMER VEHICLE' });
+                if (value)
+                  setData({
+                    ...Data,
+                    type: value as
+                      | 'COMPANY VEHICLE'
+                      | 'PRIVATE VEHICLE'
+                      | 'CUSTOMER VEHICLE',
+                  });
               }}
               placeholder="Select Type"
               placeholderStyle={{ color: 'gray' }}
-              dropDownContainerStyle={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#000' }}
+              dropDownContainerStyle={{
+                backgroundColor: '#fff',
+                borderWidth: 1,
+                borderColor: '#000',
+              }}
               listMode="SCROLLVIEW"
               dropDownDirection="AUTO"
             />
@@ -186,7 +232,11 @@ const PlaceForm = ({ onClose, onSubmit, initialValues, formtype,RouteID }:PlaceF
               setValue={setRouteTypeValue}
               placeholder="Select Route Type"
               placeholderStyle={{ color: 'gray' }}
-              dropDownContainerStyle={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#000' }}
+              dropDownContainerStyle={{
+                backgroundColor: '#fff',
+                borderWidth: 1,
+                borderColor: '#000',
+              }}
               listMode="SCROLLVIEW"
               dropDownDirection="AUTO"
             />

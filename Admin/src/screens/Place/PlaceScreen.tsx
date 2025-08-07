@@ -103,7 +103,7 @@ const PlaceScreen = () => {
             formtype={formtype}
             initialValues={
               formtype === 'Place'
-                ? editingPlace || ({} as Place)
+                ? editingPlace || (null)
                 : (() => {
                     const place = places.find(p => p.id === selectedPlaceId);
                     const route = place?.Route.find(
