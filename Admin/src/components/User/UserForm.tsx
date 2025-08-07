@@ -6,7 +6,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Branch } from '../../@types/User';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useSelector } from 'react-redux';
@@ -32,9 +32,9 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
     },
   );
 
-  const PlaceDetails: Place[] = useSelector(
-    (state: RootState) => state.place.places,
-  );
+  const PlaceDetails: Place[] = useSelector((state: RootState) => state.place.places);
+  console.log('PlaceDetails:', PlaceDetails);
+  
   const [openBranch, setOpenBranch] = useState(false);
   const [openRoute, setOpenRoute] = useState(false);
   const [openType, setOpenType] = useState(false);
@@ -44,18 +44,19 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
   };
 
 
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="bg-white rounded-2xl p-4"
     >
-      <Text className="text-2xl font-bold text-gray-800 mb-6">
+      <Text className="text-2xl font-bold text-gray-800">
         Branch Details
       </Text>
       <ScrollView keyboardShouldPersistTaps="handled">
         {/* Route Name Dropdown */}
-        <View className="mb-4 z-20">
-          <Text className="text-lg font-semibold text-gray-700 my-4">
+        <View className="mb-2 z-20">
+          <Text className="text-lg font-semibold text-gray-700 my-2">
             Branch Name
           </Text>
           <DropDownPicker
@@ -85,8 +86,8 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
           />
         </View>
         {/* Contact Person */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 my-4">
+        <View className="mb-2">
+          <Text className="text-lg font-semibold text-gray-700 my-2">
             Contact Person
           </Text>
           <TextInput
@@ -98,8 +99,8 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
           />
         </View>
         {/* Type Dropdown */}
-        <View className="mb-4 z-10">
-          <Text className="text-lg font-semibold text-gray-700 my-4">Type</Text>
+        <View className="mb-2 z-10">
+          <Text className="text-lg font-semibold text-gray-700 my-2">Type</Text>
           <DropDownPicker
             open={openType}
             value={branch.type}
@@ -128,8 +129,8 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
           />
         </View>
         {/* Phone */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 my-4">
+        <View className="mb-2">
+          <Text className="text-lg font-semibold text-gray-700 my-2">
             Phone Number
           </Text>
           <TextInput
@@ -143,8 +144,8 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
         </View>
 
         {/* Location */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 my-4">
+        <View className="mb-2">
+          <Text className="text-lg font-semibold text-gray-700 my-2">
             Location
           </Text>
           <TextInput
@@ -157,8 +158,8 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
         </View>
 
         {/* Route Name Dropdown */}
-        <View className="mb-4 z-20">
-          <Text className="text-lg font-semibold text-gray-700 my-4">
+        <View className="mb-2 z-20">
+          <Text className="text-lg font-semibold text-gray-700 my-2">
             Route Name
           </Text>
           <DropDownPicker
@@ -189,16 +190,16 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
         </View>
 
         {/* Action Buttons */}
-        <View className="flex-row w-full items-center justify-around gap-4 mt-4 mb-16">
+        <View className="flex-row w-full items-center justify-around gap-4 mt-4 mb-2">
           <TouchableOpacity
             onPress={onCancel}
-            className="border border-primary bg-white rounded-lg px-5 py-2"
+            className="border border-primary bg-white rounded-lg px-8 py-2"
           >
             <Text className="text-lg font-bold text-primary">Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => onSubmit(branch)}
-            className="bg-primary px-3 py-2 rounded-lg items-center shadow-lg shadow-gray-900"
+            className="bg-primary px-8 py-2 rounded-lg items-center shadow-lg shadow-gray-900"
           >
             <Text className="text-lg font-bold text-white">Submit</Text>
           </TouchableOpacity>

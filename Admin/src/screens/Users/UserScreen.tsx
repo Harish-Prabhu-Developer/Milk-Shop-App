@@ -72,12 +72,14 @@ const UserScreen = () => {
         )}
       />
       <FloatingButton onPress={handleAdd} />
-      <Modal visible={modalVisible} animationType="slide">
-        <UserForm
-          initialData={editData || undefined}
-          onSubmit={handleSave}
-          onCancel={() => setModalVisible(false)}
-        />
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View className="flex-1 justify-end bg-black/50 bg-opacity-50">
+          <UserForm
+            initialData={editData || undefined}
+            onSubmit={handleSave}
+            onCancel={() => setModalVisible(false)}
+          />
+        </View>
       </Modal>
     </View>
   );
