@@ -10,7 +10,19 @@ interface UserState{
 };
 
 const initialState:UserState = {
-    users: [],
+    users: [
+        {
+            id:'hfdjshjgdj87584fhdjshy784y',
+            branchName:'KALLIKUPPAM NKC',
+            phone:'9876543210',
+            routeName:'KALLIKUPPAM NKC',
+            type:'NKC Local',
+            address:"",
+            contactPerson:'kumaran',
+            location:'chennai'
+        },
+
+    ],
     loading: false,
     error: null,
 };

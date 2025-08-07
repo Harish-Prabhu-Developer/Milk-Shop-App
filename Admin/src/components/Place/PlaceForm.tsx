@@ -1,298 +1,211 @@
-// PlaceForm.tsx
+// Fixes across PlaceForm.tsx
+// Main fixes:
+// 1. Remove incorrect useEffect
+// 2. Set route dropdown value correctly
+// 3. Handle form values cleanly for edit vs. create
+// 4. Minor naming, UI, type consistency improvements
+
 import {
   View,
   Text,
   KeyboardAvoidingView,
-  Platform,
+  ScrollView,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
+import { Place, Route, ROUTETYPES } from '../../@types/Place';
+import { Platform } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { Place, Route, VehicleDetails } from '../../@types/Place';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/store';
 
-interface PlaceFormProps {
-  onClose: () => void;
-  onSubmit: (places: Place | Route | VehicleDetails) => void;
-  formtype: 'places' | 'routes' | 'vehicles';
-  initialValues?: Partial<Place> | Partial<Route> | Partial<VehicleDetails>;
-}
+// Props
+  type PlaceFormProps = {
+    onClose: () => void;
+    onSubmit: (data: Place|Route,type:'Place'|'Route',EditStatus:boolean) => void;
+    formtype: 'Place' | 'Route';
+    initialValues?: Partial<Place>;
+    RouteID:string;
+  };
+const PlaceForm = ({ onClose, onSubmit, initialValues, formtype,RouteID }:PlaceFormProps) => {
+  const [Data, setData] = useState({
+    RouteGroup: initialValues?.RouteGroup || '',
+    location: initialValues?.location || '',
+    Route: initialValues?.Route || [],
+    type: initialValues?.type || 'COMPANY VEHICLE',
+    distance: initialValues?.distance || '',
+    id: initialValues?.id || `${Date.now()}`,
+  });
 
-const FORM_TYPES: Record<'places' | 'routes' | 'vehicles', string> = {
-  places: 'Place',
-  routes: 'Route',
-  vehicles: 'Vehicle',
-};
-
-const PlaceForm = ({ onClose, onSubmit, formtype, initialValues }: PlaceFormProps) => {
-
-  const Routes: Route[] = useSelector((state: RootState) => state.place.routes) || [];
-  const Vehicles: VehicleDetails[] = useSelector((state: RootState) => state.place.Vehicles) || [];
-  // State for text input fields
-  const [routeGroup, setRouteGroup] = useState('');
-  const [branchName, setBranchName] = useState('');
-  const [location, setLocation] = useState('');
-  const [distance, setDistance] = useState('');
-
-  // Dropdowns: Route
-  const [routeOpen, setRouteOpen] = useState(false);
-  const [routeValue, setRouteValue] = useState<string | null>(null);
-  const [routeItems, setRouteItems] = useState(
-    Routes.map(route => ({
-      label: route['Branch Name'],
-      value: route.id,
-    }))
-  );
-
-
-  // Dropdowns: Vehicle
-  const [vehicleOpen, setVehicleOpen] = useState(false);
-  const [vehicleValue, setVehicleValue] = useState<string | null>(null);
-  const [vehicleItems, setVehicleItems] = useState([
-    { label: 'Company Vehicle', value: 'COMPANY VEHICLE' },
-    { label: 'Private Vehicle', value: 'PRIVATE VEHICLE' },
-    { label: 'Customer Vehicle', value: 'CUSTOMER VEHICLE' },
+  // Vehicle Type Dropdown
+  const [openType, setOpenType] = useState(false);
+  const [Typevalue, setTypeValue] = useState(Data.type);
+  const [Typeitems, setTypeItems] = useState([
+    { label: 'COMPANY VEHICLE', value: 'COMPANY VEHICLE' },
+    { label: 'PRIVATE VEHICLE', value: 'PRIVATE VEHICLE' },
+    { label: 'CUSTOMER VEHICLE', value: 'CUSTOMER VEHICLE' },
   ]);
 
-    // Dropdowns: Route
-  const [routeplaceOpen, setRoutePlaceOpen] = useState(false);
-  const [routeplaceValue, setRoutePlaceValue] = useState<string | null>(null);
-  const [routeplaceItems, setRoutePlaceItems] = useState(
-    Routes.map(route => ({
-      label: route['Branch Name'],
-      value: route.id,
-    }))
-  );
-
-  // Dropdowns: Route Type
-  const [routeTypesOpen, setRouteTypeOpen] = useState(false);
-  const [routeTypesValue, setRouteTypeValue] = useState<string | null>(null);
-  const [routeTypesItems, setRouteTypeItems] = useState([
+  // Route Form States
+  const [openRouteType, setOpenRouteType] = useState(false);
+  const [RouteTypevalue, setRouteTypeValue] = useState<string | null>(null);
+  const [RouteTypeitems, setRouteTypeItems] = useState([
     { label: 'ROUTE 1', value: 'ROUTE 1' },
     { label: 'ROUTE 2', value: 'ROUTE 2' },
     { label: 'ROUTE 3', value: 'ROUTE 3' },
     { label: 'ADDITIONAL', value: 'ADDITIONAL' },
   ]);
+  const [branchName, setBranchName] = useState('');
 
-  // Load initial values when editing
   useEffect(() => {
-    if (!initialValues) return;
-
-    if (formtype === 'places') {
-      const place = initialValues as Partial<Place>;
-      setRouteGroup(place.RouteGroup || '');
-      if (place.VehicleDetails?.type) setVehicleValue(place.VehicleDetails.type);
-    } else if (formtype === 'routes') {
-      const route = initialValues as Partial<Route>;
-      setBranchName(route['Branch Name'] || '');
-      setRouteTypeValue(route['Route type'] || null);
-    } else if (formtype === 'vehicles') {
-      const vehicle = initialValues as Partial<VehicleDetails>;
-      setVehicleValue(vehicle.type || null);
-      setLocation(vehicle.location || '');
-      setDistance(vehicle.distance || '');
+    if (formtype === 'Route') {
+      setRouteTypeValue(initialValues?.Route?.[0]?.['Route type'] || null);
+      setBranchName(initialValues?.Route?.[0]?.['Branch Name'] || '');
     }
-  }, [formtype, initialValues]);
+    console.log(initialValues,"initial");
+    
+  }, [formtype]);
 
   const handleSubmit = () => {
-    if (formtype === 'places') {
-      const payload: Place = {
-        id: initialValues?.id || Math.random().toString(36).slice(2),
-        RouteGroup: routeGroup,
-        Route: [], // Can be populated if needed
-        VehicleDetails: vehicleValue
-          ? {
-              id: Math.random().toString(36).slice(2),
-              type: vehicleValue as VehicleDetails['type'],
-              location: '',
-              distance: '',
-            }
-          : undefined,
+    if (formtype === 'Place') {
+      const place: Place = {
+        ...Data,
+        type: Typevalue || 'COMPANY VEHICLE',
       };
-      onSubmit(payload);
-    } else if (formtype === 'routes') {
-      const payload: Route = {
-        id: initialValues?.id || Math.random().toString(36).slice(2),
-        'Route type': routeTypesValue as Route['Route type'],
-        'Branch Name': branchName,
-      };
-      onSubmit(payload);
-    } else if (formtype === 'vehicles') {
-      const payload: VehicleDetails = {
-        id: initialValues?.id || Math.random().toString(36).slice(2),
-        type: vehicleValue as VehicleDetails['type'],
-        location,
-        distance,
-      };
-      onSubmit(payload);
+ 
+      onSubmit(place, 'Place', initialValues? true : false);
+    } else if (formtype === 'Route') {
+      if (!RouteTypevalue || !branchName.trim()) {
+        Alert.alert('Missing Fields', 'Please fill both Route Type and Branch Name');
+        return;
+      }
+    const newRoute: Route = {
+      id:  initialValues?.Route?.[0].id||`${Date.now()}`,
+      'Route type': RouteTypevalue as ROUTETYPES,
+      'Branch Name': branchName.trim(),
+    };
+
+      onSubmit(newRoute, 'Route',initialValues? true : false);
     }
+    onClose();
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="space-y-5"
+      className="bg-white rounded-2xl p-4 m-1"
     >
-      <Text className="text-xl font-bold text-gray-800 my-3">
-        {`${initialValues?'Edit':'Add'} ${FORM_TYPES[formtype]}`}
+      <Text className="text-2xl font-bold text-gray-800 mb-2">
+        {initialValues ? `Edit ${formtype}` : `Add ${formtype}`}
       </Text>
 
-      {formtype === 'places' ? (
+      {formtype === 'Place' && (
         <>
-          <View>
-            <Text className="text-lg font-bold text-gray-800 py-4">
+          <View className="mb-2">
+            <Text className="text-lg font-bold text-gray-700 my-2">
               Route Group Name
             </Text>
             <TextInput
               placeholder="Enter Route Group Name"
-              placeholderTextColor="gray"
-              value={routeGroup}
-              onChangeText={setRouteGroup}
+              value={Data.RouteGroup}
+              onChangeText={text => setData({ ...Data, RouteGroup: text })}
               className="w-full border border-gray-800 px-4 py-4 rounded-lg text-lg text-gray-800"
+              placeholderTextColor="gray"
             />
           </View>
-
-          <View>
-            <Text className="text-lg font-bold text-gray-800 py-4">Select Route Details</Text>
+          <View className="mb-2 z-10">
+            <Text className="text-lg font-semibold text-gray-700 my-2">
+              Vehicle Type
+            </Text>
             <DropDownPicker
-              open={routeplaceOpen}
-              value={routeplaceValue}
-              items={routeplaceItems}
-              setOpen={setRoutePlaceOpen}
-              setValue={setRoutePlaceValue}
-              setItems={setRoutePlaceItems}
-              placeholder="Select Route"
-              placeholderStyle={{ color: 'gray' }}
-              style={{ zIndex: 1000 }}
-              dropDownDirection='BOTTOM'
-              dropDownContainerStyle={{
-                backgroundColor: '#fff',
-                borderWidth: 1,
-                borderColor: '#000',
+              open={openType}
+              value={Typevalue}
+              items={Typeitems}
+              setOpen={setOpenType}
+              setValue={setTypeValue}
+              onChangeValue={value => {
+                if (value) setData({ ...Data, type: value as 'COMPANY VEHICLE' | 'PRIVATE VEHICLE' | 'CUSTOMER VEHICLE' });
               }}
+              placeholder="Select Type"
+              placeholderStyle={{ color: 'gray' }}
+              dropDownContainerStyle={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#000' }}
+              listMode="SCROLLVIEW"
+              dropDownDirection="AUTO"
             />
           </View>
-
-          <View style={{ zIndex: 999 }}>
-            <Text className="text-lg font-bold text-gray-800 py-4">Select Vehicle Details</Text>
-            <DropDownPicker
-              open={vehicleOpen}
-              value={vehicleValue}
-              items={vehicleItems}
-              setOpen={setVehicleOpen}
-              setValue={setVehicleValue}
-              setItems={setVehicleItems}
-              placeholder="Select Vehicle"
-              placeholderStyle={{ color: 'gray' }}
-              dropDownContainerStyle={{
-                backgroundColor: '#fff',
-                borderWidth: 1,
-                borderColor: '#000',
-              }}
+          <View className="mb-2">
+            <Text className="text-lg font-bold text-gray-700 my-2">
+              Location
+            </Text>
+            <TextInput
+              placeholder="Enter Location"
+              value={Data.location}
+              onChangeText={text => setData({ ...Data, location: text })}
+              className="w-full border border-gray-800 px-4 py-4 rounded-lg text-lg text-gray-800"
+              placeholderTextColor="gray"
+            />
+          </View>
+          <View className="mb-2">
+            <Text className="text-lg font-bold text-gray-700 my-2">
+              Distance
+            </Text>
+            <TextInput
+              placeholder="Enter Distance"
+              value={Data.distance}
+              onChangeText={text => setData({ ...Data, distance: text })}
+              className="w-full border border-gray-800 px-4 py-4 rounded-lg text-lg text-gray-800"
+              placeholderTextColor="gray"
             />
           </View>
         </>
-      ) : formtype === 'routes' ? (
+      )}
+
+      {formtype === 'Route' && (
         <>
-          <View style={{ zIndex: 1000 }}>
-            <Text className="text-lg font-bold text-gray-800 py-4">
-              Route Type
-            </Text>
-            <DropDownPicker
-              open={routeTypesOpen}
-              value={routeTypesValue}
-              items={routeTypesItems}
-              setOpen={setRouteTypeOpen}
-              setValue={setRouteTypeValue}
-              setItems={setRouteTypeItems}
-              placeholder="Choose a Route Type"
-              placeholderStyle={{ color: 'gray' }}
-              dropDownContainerStyle={{
-                backgroundColor: '#fff',
-                borderWidth: 1,
-                borderColor: '#000',
-              }}
-            />
-          </View>
-          <View>
-            <Text className="text-lg font-bold text-gray-800 py-4">
+          <View className="mb-2">
+            <Text className="text-lg font-bold text-gray-700 my-2">
               Branch Name
             </Text>
             <TextInput
               placeholder="Enter Branch Name"
-              placeholderTextColor="gray"
               value={branchName}
-              onChangeText={setBranchName}
+              onChangeText={text => setBranchName(text)}
               className="w-full border border-gray-800 px-4 py-4 rounded-lg text-lg text-gray-800"
+              placeholderTextColor="gray"
             />
           </View>
-        </>
-      ) : formtype === 'vehicles' ? (
-        <>
-          <View style={{ zIndex: 1000 }}>
-            <Text className="text-lg font-bold text-gray-800 py-4">
-              Vehicle type
+          <View className="mb-2 z-10">
+            <Text className="text-lg font-semibold text-gray-700 my-2">
+              Route Type
             </Text>
             <DropDownPicker
-              open={vehicleOpen}
-              value={vehicleValue}
-              items={vehicleItems}
-              setOpen={setVehicleOpen}
-              setValue={setVehicleValue}
-              setItems={setVehicleItems}
-              placeholder="Choose a vehicle type"
+              open={openRouteType}
+              value={RouteTypevalue}
+              items={RouteTypeitems}
+              setOpen={setOpenRouteType}
+              setValue={setRouteTypeValue}
+              placeholder="Select Route Type"
               placeholderStyle={{ color: 'gray' }}
-              dropDownContainerStyle={{
-                backgroundColor: '#fff',
-                borderWidth: 1,
-                borderColor: '#000',
-              }}
-            />
-          </View>
-
-          <View>
-            <Text className="text-lg font-bold text-gray-800 py-4">
-              Location
-            </Text>
-            <TextInput
-              placeholder="Enter the Location"
-              placeholderTextColor="gray"
-              value={location}
-              onChangeText={setLocation}
-              className="w-full border border-gray-800 px-4 py-4 rounded-lg text-lg text-gray-800"
-            />
-          </View>
-          <View>
-            <Text className="text-lg font-bold text-gray-800 py-4">
-              Distance
-            </Text>
-            <TextInput
-              placeholder="Enter the Distance"
-              placeholderTextColor="gray"
-              value={distance}
-              onChangeText={setDistance}
-              className="w-full border border-gray-800 px-4 mr-28 py-4 rounded-lg text-lg text-gray-800"
+              dropDownContainerStyle={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#000' }}
+              listMode="SCROLLVIEW"
+              dropDownDirection="AUTO"
             />
           </View>
         </>
-      ) : null}
+      )}
 
-      <View className="flex-row w-full items-center justify-evenly my-4">
+      <View className="flex-row w-full items-center justify-around gap-4 mt-4 mb-2">
         <TouchableOpacity
-          className="bg-primary px-3 py-2 rounded-lg items-center shadow-lg shadow-gray-900"
-          onPress={handleSubmit}
-        >
-          <Text className="text-lg font-bold text-white">
-            {`${initialValues?'Edit':'Add'} ${FORM_TYPES[formtype]}`}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="border border-primary bg-white rounded-lg px-5 py-2"
           onPress={onClose}
+          className="border border-primary bg-white rounded-lg px-8 py-2"
         >
           <Text className="text-lg font-bold text-primary">Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleSubmit}
+          className="bg-primary px-8 py-2 rounded-lg items-center shadow-lg shadow-gray-900"
+        >
+          <Text className="text-lg font-bold text-white">Submit</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

@@ -7,25 +7,38 @@ import { FlatList } from 'react-native-gesture-handler';
 import UserCard from '../../components/User/UserCard';
 import UserForm from '../../components/User/UserForm';
 import { Branch } from '../../@types/User';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../redux/store';
+import { addUser, editUser, removeUser } from '../../redux/slices/userSlice';
 
 const UserScreen = () => {
-  const [branches, setBranches] = useState<Branch[]>([]);
+  const dispatch=useDispatch<AppDispatch>();
   const [modalVisible, setModalVisible] = useState(false);
   const [editData, setEditData] = useState<Branch | null>(null);
-
+  const BranchData:Branch[]=useSelector((state:RootState)=>state.user.users);
   const handleAdd = () => {
     setEditData(null);
     setModalVisible(true);
   };
 
-  const handleSave = (data: Branch) => {
+  const handleSave =async (data: Branch) => {
     if (editData) {
-      setBranches((prev) => prev.map((b) => (b.id === editData.id ? data : b)));
+      const res =await dispatch(editUser(data));
+      if (res.type==='user/editUser') {
+        ToastAndroid.show('User Edited', ToastAndroid.SHORT);        
+      } else {
+        ToastAndroid.show('Edit Failed', ToastAndroid.SHORT);
+      }
     } else {
-      setBranches((prev) => [...prev, { ...data, id: `${Date.now()}${Math.random() * 1000}`}]);
+        const res =await dispatch(addUser(data));
+        if (res.type==='user/addUser') {
+        ToastAndroid.show('User Added', ToastAndroid.SHORT);        
+      } else {
+        ToastAndroid.show('Add Failed', ToastAndroid.SHORT);
+        }
     }
     setModalVisible(false);
-    ToastAndroid.show('User Saved', ToastAndroid.SHORT);
+
   };
 
   const handleEdit = (branch: Branch) => {
@@ -33,16 +46,21 @@ const UserScreen = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = (id: string) => {
-    setBranches((prev) => prev.filter((b) => b.id !== id));
-    ToastAndroid.show('User Deleted', ToastAndroid.SHORT);
+  const handleDelete = async(id: string) => {
+    const res = await dispatch(removeUser(id));
+    if(res.type==="user/removeUser"){
+      ToastAndroid.show('User Deleted', ToastAndroid.SHORT);
+    }else{
+
+    }
+    
   };
 
   return (
     <View className="flex-1 bg-white">
       <Header title={'Users'} />
       <FlatList
-        data={branches}
+        data={BranchData}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16 }}
         renderItem={({ item }) => (
