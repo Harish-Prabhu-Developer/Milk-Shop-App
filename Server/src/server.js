@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from './Config/db.js';
 import router from "./Route/index.js";
+import path from "path";
 
 dotenv.config();
 const app = express();
@@ -12,6 +13,8 @@ app.use(express.json());
 const PORT = process.env.PORT || 5000;
 
 app.use("/milkapp",router)
+// ✅ Serve uploaded files statically
+app.use("/uploads", express.static(path.join(path.resolve(), "uploads")));
 
 connectDB()
   .then(() => {

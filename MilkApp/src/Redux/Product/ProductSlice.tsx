@@ -79,42 +79,35 @@ products: [
     error: null,
 };
 // Create an async thunk for fetching products
-// export const fetchProducts = createAsyncThunk(
-//     "product/fetchProducts",
-//     async () => {
-//         const response = await axios.get("https://api.example.com/products");
-//         return response.data;
-//     }
-// );
+export const fetchProducts = createAsyncThunk(
+    "milkapp/products/all",
+    async () => {
+        const response = await axios.get("http://10.76.23.247:3000/milkapp/products/all");
+        return response.data;
+    }
+);
 // Create the product slice
 const productSlice = createSlice({
     name: "product",
     initialState,
     reducers: {
-        addProduct: (state, action: PayloadAction<Product>) => {
-            state.products.push(action.payload);
-        },
-        removeProduct: (state, action: PayloadAction<string>) => {
-            state.products = state.products.filter(product => product.id !== action.payload);
-        },
-        
-        
+
     },
-    // extraReducers: (builder) => {
-    //     builder
-    //         .addCase(fetchProducts.pending, (state) => {
-    //             state.loading = true;
-    //             state.error = null;
-    //         })
-    //         .addCase(fetchProducts.fulfilled, (state, action) => {
-    //             state.loading = false;
-    //             state.products = action.payload;
-    //         })
-    //         .addCase(fetchProducts.rejected, (state, action) => {
-    //             state.loading = false;
-    //             state.error = action.error.message || "Failed to fetch products";
-    //         });
-    // },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchProducts.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchProducts.fulfilled, (state, action) => {
+                state.loading = false;
+                state.products = action.payload;
+            })
+            .addCase(fetchProducts.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || "Failed to fetch products";
+            });
+    },
 });
 
 export default productSlice.reducer;

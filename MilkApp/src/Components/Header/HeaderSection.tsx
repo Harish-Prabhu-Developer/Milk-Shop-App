@@ -1,11 +1,13 @@
 import { StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@Redux/Store';
 import { CartProduct } from '@Utils/@types/Products';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { jwtDecode } from 'jwt-decode';
 type HeaderSectionProps = {
     SearchBar?: boolean;
     onSearch?: (query: string) => void;
@@ -18,14 +20,25 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
      const navigation = useNavigation<StackNavigationProp<any>>();     
      const dispatch = useDispatch<AppDispatch>();
      const cartData: CartProduct[] = useSelector((state: any) => state.Cart.Carts);
+     const [displayName, setDisplayName] = useState('Branch');
+  useEffect(()=>{
+     const getName = async () => {
+        const token = await AsyncStorage.getItem("token");
+        if (token) {
+          const decode=jwtDecode<any>(token);
 
+          setDisplayName(decode.name);
+        }
+     }
+     getName();
+  },[setDisplayName])
   return (
           <View className="bg-primary px-4 py-[36px] rounded-b-3xl w-full">
             {/* Greeting and Icons */}
             
             <View className="flex-row justify-between items-center w-full">
               <View className="flex-col">
-                <Text className="text-white text-xl  font-semibold">Hello, Harish!</Text>
+                <Text className="text-white text-xl  font-semibold">Hello, {displayName}!</Text>
 
                 <Text className="text-white text-md">Welcome back to Dairy Drop</Text>
               </View>

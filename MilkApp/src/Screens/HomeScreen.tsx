@@ -8,10 +8,12 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   RefreshControl,
+  Alert,
+  BackHandler,
 } from 'react-native';
 import ProductCard from '@Components/Card/ProductCard';
 import HeaderSection from '@Components/Header/HeaderSection';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@Redux/Store';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -29,11 +31,33 @@ const HomeScreen = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [quantities, setQuantities] = useState<{ [productId: string]: number }>({});
 
+
   const productsData: CartProduct[] = useSelector(
     (state: any) => state.product.products
   );
 
-  
+
+    const handleBackPress = () => {
+    Alert.alert(
+      'Exit App',
+      'Are you sure you want to exit?',
+      [
+        { text: 'Cancel', onPress: () => null, style: 'cancel' },
+        { text: 'Exit', onPress: () => BackHandler.exitApp() },
+      ]
+    );
+    return true;
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+      return () => {
+        backHandler.remove();
+      };
+    }, [])
+  );
+
   // Simulated data fetch
   const fetchProductsData = async () => {
     setLoading(true);
