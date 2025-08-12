@@ -2,11 +2,12 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import IncreaseButton from '../Input/IncreaseButton';
+import { API_URL } from '@env';
 
 interface ProductCardProps {
   name: string;
   price: number;
-  image: any;
+  image: string;
   unit: string;
   description?: string;
   nutrition?: string;
@@ -24,7 +25,7 @@ const ProductCard = ({ name, price, image,quantity,unit,description,nutrition, o
     <View className="bg-white rounded-2xl shadow-2xl w-[170px] mx-1 my-2 border border-primary">
       {/* Product Image */}
       <View className="h-32 bg-blue-50 rounded-t-2xl overflow-hidden">
-        <Image source={image} className="w-full h-full m-2" resizeMode="cover" />
+        <Image source={{ uri: `${API_URL}/${image}` }} className="w-full h-full m-2" resizeMode="cover" />
       </View>
 
       {/* Content */}

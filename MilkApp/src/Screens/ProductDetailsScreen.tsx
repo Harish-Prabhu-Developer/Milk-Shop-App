@@ -5,12 +5,14 @@ import IncreaseButton from '@Components/Input/IncreaseButton';
 import { useDispatch } from 'react-redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AppDispatch } from '@Redux/Store';
-import { CartProduct } from '@Utils/@types/Products';
+
+import { API_URL } from '@env';
+import { ProductWithQuantity } from '@Utils/@types/Products';
 import { addToCart } from '@Redux/Cart/CartSlice';
 
 const ProductDetailsScreen = () => {
   const route = useRoute();
-  const product = route.params as CartProduct;
+  const product = route.params as ProductWithQuantity;
 
   const navigation = useNavigation<StackNavigationProp<any>>();
   const dispatch = useDispatch<AppDispatch>();
@@ -19,8 +21,8 @@ const ProductDetailsScreen = () => {
   const handleAddToCart = () => {
     console.log(`${quantity} x ${product.name} added to cart`);
      const productToAdd = {
-    ...product,
-    quantity: quantity,
+      productId: product._id,
+      quantity: quantity
   };
   dispatch(addToCart(productToAdd));
 
@@ -33,7 +35,7 @@ const ProductDetailsScreen = () => {
 
         {/* Product Image */}
         <View className="h-60 w-full bg-gray-100 rounded-3xl overflow-hidden justify-center items-center shadow-md mb-6">
-          <Image source={product.image} className="w-11/12 h-52" resizeMode="contain" />
+          <Image source={{ uri: `${API_URL}/${product.image}` }} className="w-11/12 h-52" resizeMode="contain" />
         </View>
 
         {/* Product Title */}

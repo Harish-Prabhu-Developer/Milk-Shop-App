@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '@env';
 // Define user type based on your JWT structure
 interface User {
   id: string;
@@ -21,7 +22,7 @@ export const login = createAsyncThunk(
   async (credentials:{email:string,password:string}, { rejectWithValue }) => {
     try {
       const res = await axios.post(
-        `http://10.76.23.247:3000/milkapp/auth/login`,
+        `${API_URL}/milkapp/auth/login`,
         credentials,
       );
       console.log('Login Response:', res.data);

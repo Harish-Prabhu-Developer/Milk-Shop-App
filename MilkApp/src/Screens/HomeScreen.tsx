@@ -15,13 +15,13 @@ import ProductCard from '@Components/Card/ProductCard';
 import HeaderSection from '@Components/Header/HeaderSection';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '@Redux/Store';
+import { AppDispatch, RootState } from '@Redux/Store';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { CartProduct } from '@Utils/@types/Products';
-import { addToCart } from '@Redux/Cart/CartSlice';
 
-// Optionally import fetchProducts if implemented
-// import { fetchProducts } from '@/Redux/Slices/ProductSlice';
+import { fetchProducts } from '@Redux/Product/ProductSlice';
+import { Product } from '@Utils/@types/Products';
+import { AddToCart, CartProduct } from '@Utils/@types/Cart';
+import { addToCart } from '@Redux/Cart/CartSlice';
 
 const HomeScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -32,9 +32,10 @@ const HomeScreen = () => {
   const [quantities, setQuantities] = useState<{ [productId: string]: number }>({});
 
 
-  const productsData: CartProduct[] = useSelector(
-    (state: any) => state.product.products
-  );
+const productsData: Product[] = useSelector(
+  (state: RootState) => state.product.products || []
+);
+
 
 
     const handleBackPress = () => {
@@ -62,7 +63,7 @@ const HomeScreen = () => {
   const fetchProductsData = async () => {
     setLoading(true);
     try {
-      // await dispatch(fetchProducts()); // if using Redux thunk
+      await dispatch(fetchProducts()); // if using Redux thunk
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
       console.log('Error fetching products:', error);
@@ -84,22 +85,17 @@ const HomeScreen = () => {
 
   const handleAddToCart = (productId: string, itemName: string, qty: number) => {
     setQuantities((prev) => ({ ...prev, quantity: qty }));
-    const productToAdd: CartProduct = {
-      id: productId,
-      name: itemName,
-      price: productsData.find((item) => item.id === productId)?.price || 0,
-      unit: productsData.find((item) => item.id === productId)?.unit || '',
-      description: productsData.find((item) => item.id === productId)?.description || '',
-      nutrition: productsData.find((item) => item.id === productId)?.nutrition || '',
-      image: productsData.find((item) => item.id === productId)?.image || require('@assets/image.png'),
+    const productToAdd: AddToCart = {
+      productId: productId,
       quantity: qty,
     };
     dispatch(addToCart(productToAdd));
     console.log(`${qty} x ${itemName} added to cart`);
   };
 
-  const filteredProducts = productsData.filter((item) =>
+const filteredProducts = productsData.filter((item) =>
     item.name.toLowerCase().includes(SearchQuery.toLowerCase())
+    
   );
 
   return (
@@ -126,7 +122,7 @@ const HomeScreen = () => {
       ) : (
         <FlatList
           data={filteredProducts}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           numColumns={2}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 8, paddingBottom: 100 }}
@@ -138,13 +134,13 @@ const HomeScreen = () => {
             <Text className="text-center text-black">No products available</Text>
           )}
           renderItem={({ item }) => {
-            const currentQty = quantities[item.id] ?? 1;
+            const currentQty = quantities[item._id] ?? 1;
 
             return (
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate('ProductDetailsScreen', {
-                    id: item.id,
+                    _id: item._id,
                     name: item.name,
                     price: item.price,
                     image: item.image,
@@ -161,7 +157,7 @@ const HomeScreen = () => {
                   image={item.image}
                   quantity={currentQty}
                   unit={item.unit}
-                  onAddToCart={(qty) => handleAddToCart(item.id, item.name, qty)}
+                  onAddToCart={(qty) => handleAddToCart(item._id, item.name, qty)}
                 />
               </TouchableOpacity>
             );

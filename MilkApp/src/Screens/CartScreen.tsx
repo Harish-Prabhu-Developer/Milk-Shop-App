@@ -13,33 +13,43 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { AppDispatch } from '@Redux/Store';
-import { CartProduct } from '@Utils/@types/Products';
+import { AppDispatch, RootState } from '@Redux/Store';
 import IncreaseButton from '@Components/Input/IncreaseButton';
 import { Swipeable } from 'react-native-gesture-handler';
-import { clearCart, EditOnCart, removeFromCart } from '@Redux/Cart/CartSlice';
+
 import CustomAlert from '@Components/Alert/CustomAert';
 import { addToMyOrders } from '@Redux/Order/OrderSlice';
-import { Order, OrderProduct } from '@/Utils/@types/Order';
+import { Order, OrderProduct } from '@Utils/@types/Order';
+import { AddToCart, CartProduct, Items } from '@Utils/@types/Cart';
+import { API_URL } from '@env';
+import { fetchCart, removeFromCart, updateCart } from '@Redux/Cart/CartSlice';
 
 const CartScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const dispatch = useDispatch<AppDispatch>();
-  const cartData: CartProduct[] = useSelector((state: any) => state.Cart.Carts);
+  const cartData: CartProduct = useSelector((state: RootState) => state.Cart.Carts);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  const totalAmount = cartData.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const [loading, setLoading] = useState(false);
+
 
   const fetchProductsData = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setLoading(true);
+        try {
+          await dispatch(fetchCart()); // if using Redux thunk
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.log('Error fetching Carts:', error);
+        } finally {
+          setLoading(false);
+        }
   };
 
   useEffect(() => {
+    console.log('Cart Data:', cartData);
+    
     fetchProductsData();
   }, []);
 
@@ -57,14 +67,19 @@ const CartScreen = () => {
     </View>
   );
 
-  const renderCartItem = ({ item }: { item: CartProduct }) => {
+  const renderCartItem = ({ item }: { item: Items }) => {
     const handleConfirmDelete = () => {
-      setSelectedItemId(item.id); // Save which item is being deleted
+      setSelectedItemId(item._id); // Save which item is being deleted
       setIsAlertVisible(true);    // Show alert
     };
 
 
 
+    const handleupdateCart = async (Id: string,Count: number) => {
+      console.log(`${Count} x ${Id} added to cart`);
+      
+      await dispatch(updateCart({productId: Id,quantity: Count}))
+    }
     return (
       <Swipeable
         renderLeftActions={() => <DeleteAction onDelete={handleConfirmDelete} />}
@@ -74,27 +89,27 @@ const CartScreen = () => {
         <View className="flex-row bg-white p-4 mb-4 rounded-2xl shadow-sm border border-gray-200">
           {/* Product Image */}
           <View className="w-32 h-32 rounded-xl overflow-hidden bg-gray-100">
-            <Image source={item.image} className="w-full h-full" resizeMode="cover" />
+            <Image source={{ uri: `${API_URL}/${item.product.image}` }} className="w-full h-full" resizeMode="cover" />
           </View>
 
           {/* Info Section */}
           <View className="flex-1 pl-4 justify-between">
             <View>
-              <Text className="text-lg font-semibold text-gray-800">{item.name}</Text>
-              <Text className="text-sm text-gray-500 mt-1">{item.unit}</Text>
+              <Text className="text-lg font-semibold text-gray-800">{item.product.name}</Text>
+              <Text className="text-sm text-gray-500 mt-1">{item.product.unit}</Text>
               <View className="flex-row mt-2">
                 <Text className="text-gray-600 font-medium">Price:</Text>
-                <Text className="text-gray-800 ml-2">₹{item.price}</Text>
+                <Text className="text-gray-800 ml-2">₹{item.product.price}</Text>
               </View>
               <View className="flex-row mt-1">
                 <Text className="text-gray-600 font-medium">Total:</Text>
-                <Text className="text-gray-800 ml-2">₹{item.price * item.quantity}</Text>
+                <Text className="text-gray-800 ml-2">₹{item.product.price * item.quantity}</Text>
               </View>
             </View>
 
             <View className="mt-3 mx-10">
                 <IncreaseButton
-                  OnCount={(Count) => dispatch(EditOnCart({ id: item.id, quantity: Count }))}
+                  OnCount={(Count) =>handleupdateCart(item._id, Count)}
                   initialCount={item.quantity}
                 />
 
@@ -108,40 +123,40 @@ const CartScreen = () => {
 
 
 const handleCheckout = async () => {
-  // Map cart items to OrderProduct structure
-  const productData: OrderProduct[] = cartData.map(item => ({
-    id: item.id,
-    name: item.name,
-    price: item.price,
-    quantity: item.quantity,
-    total: item.price * item.quantity,
-    image: item.image,
-    unit: item.unit,
-    description: item.description
-  }));
+  // // Map cart items to OrderProduct structure
+  // const productData: OrderProduct[] = cartData.map(item => ({
+  //   id: item._id,
+  //   name: item.name,
+  //   price: item.price,
+  //   quantity: item.quantity,
+  //   total: item.price * item.quantity,
+  //   image: item.image,
+  //   unit: item.unit,
+  //   description: item.description
+  // }));
 
-  // Generate order details
-  const orderDetails: Order = {
-    id: `ORD${Date.now()}`, // Temporary ID, replace with actual ID from backend
-    ProductData: productData,
-    Branch: { id: 'BRN001', branchType: 'AKC OUT', branchName: 'Branch A', phone: '1234567890', location: 'Location A',routeType:'ROUTE 1',routeName:'Route 1' },
-    OrderId: `ORD${Date.now()}${"John Doe"}${Math.floor(Math.random() * 1000)}`, // Unique Order ID
-    OrderDate: new Date().toISOString(),
-    TotalAmount: totalAmount,
-    OrderStatus: 'Delivered',
-    PaymentStatus: 'Failed',
-    // DeliveryStatus: 'Out for Delivery',
-    ReceivedStatus: 'Pending'
-  };
+  // // Generate order details
+  // const orderDetails: Order = {
+  //   id: `ORD${Date.now()}`, // Temporary ID, replace with actual ID from backend
+  //   ProductData: productData,
+  //   Branch: { id: 'BRN001', branchType: 'AKC OUT', branchName: 'Branch A', phone: '1234567890', location: 'Location A',routeType:'ROUTE 1',routeName:'Route 1' },
+  //   OrderId: `ORD${Date.now()}${"John Doe"}${Math.floor(Math.random() * 1000)}`, // Unique Order ID
+  //   OrderDate: new Date().toISOString(),
+  //   TotalAmount: totalAmount,
+  //   OrderStatus: 'Delivered',
+  //   PaymentStatus: 'Failed',
+  //   // DeliveryStatus: 'Out for Delivery',
+  //   ReceivedStatus: 'Pending'
+  // };
 
-   const res =await dispatch(addToMyOrders(orderDetails));
-  if (res.type === 'Order/addToMyOrders') {
-    Alert.alert('Order Placed', 'Your order has been placed successfully!', [
-      { text: 'OK', onPress: () => navigation.navigate('TabBar') },
-    ]);
-    // Clear cart after successful order placement
-      dispatch(clearCart());
-  }
+  //  const res =await dispatch(addToMyOrders(orderDetails));
+  // if (res.type === 'Order/addToMyOrders') {
+  //   Alert.alert('Order Placed', 'Your order has been placed successfully!', [
+  //     { text: 'OK', onPress: () => navigation.navigate('TabBar') },
+  //   ]);
+  //   // Clear cart after successful order placement
+  //     dispatch(clearCart());
+  // }
    
 
 };
@@ -178,16 +193,16 @@ const handleCheckout = async () => {
             </TouchableOpacity>
             <Text className="text-2xl text-white font-bold px-4">My Cart</Text>
           </View>
-          <Text className="text-white text-base">{cartData.length} item(s)</Text>
+          <Text className="text-white text-base">{cartData?.items?.length ?? 0} item(s)</Text>
         </View>
       </View>
 
       {/* Cart List */}
       <View className="flex-1 px-4 mt-4">
-        {cartData.length > 0 ? (
+        {cartData.items.length > 0 ? (
           <FlatList
-            data={cartData}
-            keyExtractor={(item, index) => item.id || index.toString()}
+            data={cartData.items}
+            keyExtractor={(item, index) => item._id || index.toString()}
             renderItem={renderCartItem}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 140 }}
@@ -203,12 +218,12 @@ const handleCheckout = async () => {
       </View>
 
       {/* Checkout Summary */}
-      {cartData.length > 0 && (
+      {(cartData?.items?.length ?? 0) > 0 && (
               <View className="absolute flex flex-row items-center justify-between bottom-10 left-0 right-0 px-5 py-4 bg-white border-t border-zinc-200 shadow-md">
                 
                 <View className=''>
                   <Text className="text-lg font-bold text-zinc-800">Total Price</Text>
-                  <Text className="text-xl font-extrabold text-primary">₹{totalAmount.toFixed(2)}</Text>
+                  <Text className="text-xl font-extrabold text-primary">₹{cartData.totalAmount}</Text>
                 </View>
                 <TouchableOpacity
                   onPress={handleCheckout}
