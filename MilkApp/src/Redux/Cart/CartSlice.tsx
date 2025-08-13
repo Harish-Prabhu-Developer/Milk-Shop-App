@@ -35,7 +35,7 @@ const getHeaders = async () => {
 // ---------- Thunks ----------
 
 // Add to Cart
-export const addToCart = createAsyncThunk<CartProduct, AddToCart, { rejectValue: string }>(
+export const addToCart = createAsyncThunk<any, AddToCart, { rejectValue: string }>(
   'milkapp/cart/add',
   async (productAddToCart, { rejectWithValue }) => {
     try {
@@ -51,7 +51,7 @@ export const addToCart = createAsyncThunk<CartProduct, AddToCart, { rejectValue:
 );
 
 // Update Cart
-export const updateCart = createAsyncThunk<CartProduct, AddToCart, { rejectValue: string }>(
+export const updateAddTOCart = createAsyncThunk<any, AddToCart, { rejectValue: string }>(
   'milkapp/cart/update',
   async (updateCartItem, { rejectWithValue }) => {
     try {
@@ -67,7 +67,7 @@ export const updateCart = createAsyncThunk<CartProduct, AddToCart, { rejectValue
 );
 
 // Fetch Cart
-export const fetchCart = createAsyncThunk<CartProduct, void, { rejectValue: string }>(
+export const fetchCart = createAsyncThunk<any, void, { rejectValue: string }>(
   'milkapp/cart/getall',
   async (_, { rejectWithValue }) => {
     try {
@@ -81,7 +81,7 @@ export const fetchCart = createAsyncThunk<CartProduct, void, { rejectValue: stri
 );
 
 // Remove from Cart
-export const removeFromCart = createAsyncThunk<CartProduct, string, { rejectValue: string }>(
+export const removeFromCart = createAsyncThunk<any, string, { rejectValue: string }>(
   'milkapp/cart/remove',
   async (id, { rejectWithValue }) => {
     try {
@@ -107,7 +107,11 @@ const CartSlice = createSlice({
     });
     builder.addCase(addToCart.fulfilled, (state, action) => {
       state.loading = false;
-      state.Carts = action.payload;
+      console.log('Add to Cart response : ',action.payload)
+      if (action.payload.msg==="Product added to cart") {
+        state.Carts = action.payload.cart;        
+      }
+
     });
     builder.addCase(addToCart.rejected, (state, action) => {
       state.loading = false;
@@ -131,17 +135,19 @@ const CartSlice = createSlice({
     });
 
     // Update cart
-    builder.addCase(updateCart.pending, (state) => {
+    builder.addCase(updateAddTOCart.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(updateCart.fulfilled, (state, action) => {
+    builder.addCase(updateAddTOCart.fulfilled, (state, action) => {
       state.loading = false;
       console.log('Update Cart Response:', action.payload);
+      if (action.payload.msg==="Cart updated") {
+        state.Carts = action.payload.cart;  
+      }
       
-      state.Carts = action.payload;
     });
-    builder.addCase(updateCart.rejected, (state, action) => {
+    builder.addCase(updateAddTOCart.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload || 'Update cart failed';
     });
@@ -153,7 +159,11 @@ const CartSlice = createSlice({
     });
     builder.addCase(removeFromCart.fulfilled, (state, action) => {
       state.loading = false;
-      state.Carts = action.payload;
+      console.log('Remove from Cart Response:', action.payload);
+      if (action.payload.msg==="Product removed from cart") {
+        state.Carts = action.payload.cart;        
+      }
+
     });
     builder.addCase(removeFromCart.rejected, (state, action) => {
       state.loading = false;

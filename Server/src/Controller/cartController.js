@@ -12,7 +12,7 @@ export const addToCart = async (req, res) => {
         // Validate product exists
         const product = await ProductModel.findById(productId);
         if (!product) {
-            return res.status(404).json({ message: "Product not found" });
+            return res.status(404).json({ msg: "Product not found" });
         }
 
         // Find the user's cart
@@ -39,7 +39,7 @@ export const addToCart = async (req, res) => {
         await cart.save();
 
         res.status(200).json({
-            message: "Product added to cart",
+            msg: "Product added to cart",
             cart
         });
     } catch (error) {
@@ -87,9 +87,9 @@ export const updateCartItem = async (req, res) => {
         const { productId, quantity } = req.body;
         const userId = req.user._id;
 
-        const cart = await CartModel.findOne({pr });
+        const cart = await CartModel.findOne({user:userId }).populate("items.product");
         if (!cart) {
-            return res.status(404).json({ message: "Cart not found" });
+            return res.status(404).json({ msg: "Cart not found" });
         }
 
         const item = cart.items.find(
@@ -97,13 +97,13 @@ export const updateCartItem = async (req, res) => {
         );
 
         if (!item) {
-            return res.status(404).json({ message: "Product not in cart" });
+            return res.status(404).json({ msg: "Product not in cart" });
         }
 
         item.quantity = quantity;
         await cart.save();
 
-        res.status(200).json({ message: "Cart updated", cart });
+        res.status(200).json({ msg: "Cart updated", cart });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -117,7 +117,7 @@ export const removeFromCart = async (req, res) => {
 
         const cart = await CartModel.findOne({ user: userId });
         if (!cart) {
-            return res.status(404).json({ message: "Cart not found" });
+            return res.status(404).json({ msg: "Cart not found" });
         }
 
         cart.items = cart.items.filter(
@@ -126,7 +126,7 @@ export const removeFromCart = async (req, res) => {
 
         await cart.save();
 
-        res.status(200).json({ message: "Product removed from cart", cart });
+        res.status(200).json({ msg: "Product removed from cart", cart });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

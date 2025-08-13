@@ -5,7 +5,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Order, OrderProduct } from '@Utils/@types/Order';
+import { Order, UpdateReceivedItems} from '@Utils/@types/Order';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { formatDate, GetDay, GetTime } from '@Utils/CustomFunctions/DateFunctions';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
@@ -15,8 +15,11 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { InvoiceTemplate } from '@Utils/Template/Download';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '@Redux/Store';
-import { addToMyOrders, cancelOrder,confirmOrder } from '@Redux/Order/OrderSlice';
+
 import ConfirmOrderModal from '@Components/Alert/ConfirmOrderModal';
+import { Items } from '@Utils/@types/Cart';
+import { API_URL } from '@env';
+import { updateOrderData } from '@Redux/Order/OrderSlice';
 
 const OrderDetailScreen = () => {
   const route = useRoute();
@@ -35,7 +38,7 @@ const OrderDetailScreen = () => {
   const { Order } = params;
 const [modalVisible, setModalVisible] = useState(false);
 const [selectedProducts, setSelectedProducts] = useState<Record<string, { selected: boolean; qty: number }>>(
-  Object.fromEntries(Order.ProductData.map(product => [product.id, { selected: true, qty: product.quantity }]))
+  Object.fromEntries(Order.ProductData.map(product => [product._id, { selected: true, qty: product.quantity }]))
 );
 
 const toggleProductSelection = (productId: string) => {
@@ -77,50 +80,50 @@ const updateProductQuantity = (productId: string, qty: number) => {
     </Text>
   );
 
-  const renderProduct = (item: OrderProduct, index: number) => (
+  const renderProduct = (item: Items, index: number) => (
     <Animated.View
-      key={item.id||index.toString()}
+      key={item._id||index.toString()}
       entering={FadeInUp.duration(300)}
       className="flex-row items-center justify-between mb-3 p-4 bg-white rounded-2xl shadow-sm"
     >
       <View className="flex-row items-center">
         <View className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 mr-4">
-          <Image source={item.image} className="w-full h-full" resizeMode="cover" />
+          <Image source={{uri:`${API_URL}/${item.product.image}`}} className="w-full h-full" resizeMode="cover" />
         </View>
         <View>
-          <Text className="text-base font-semibold text-gray-800">{item.name}</Text>
-          <Text className="text-sm text-gray-500">{item.unit}</Text>
+          <Text className="text-base font-semibold text-gray-800">{item.product.name}</Text>
+          <Text className="text-sm text-gray-500">{item.product.unit}</Text>
           <Text className="mt-1 text-gray-600">Qty: {item.quantity}</Text>
-          <Text className="mt-1 text-gray-600">Price: ₹{item.price.toFixed(2)}</Text>
+          <Text className="mt-1 text-gray-600">Price: ₹{item.product.price}</Text>
         </View>
       </View>
       <Text className="text-lg font-bold text-textPrimary">
-        ₹{(item.price * item.quantity).toFixed(2)}
+        ₹{item?.Total}
       </Text>
     </Animated.View>
   );
 
   // Reorder
   const handleReorder = async() => {
-    const updatedOrder:Order = { 
-      id: `ORD${Date.now()}`,
-    ProductData: Order.ProductData,
-    Branch: { id: 'BRN001', branchType: 'AKC OUT', branchName: 'Branch A', phone: '1234567890', location: 'Location A',routeType:'ROUTE 1',routeName:'Route 1' },    
-    OrderId: `ORD${Date.now()}${"John Doe"}${Math.floor(Math.random() * 1000)}`, // Unique Order ID
-    OrderDate: new Date().toISOString(),
-    TotalAmount: Order.TotalAmount,
-    OrderStatus: 'Pending',
-    PaymentStatus: 'Pending',
-    ReceivedStatus: 'Pending'
-    };
-    console.log('Updated Order:', updatedOrder);
-    const res =await dispatch(addToMyOrders(updatedOrder));
-      if (res.type === 'Order/addToMyOrders') {
-        Alert.alert('Order Placed', 'Your order has been placed successfully!', [
-          { text: 'OK', onPress: () => navigation.navigate('OrderScreen') },
-        ]);
+    // const updatedOrder:Order = { 
+    //   id: `ORD${Date.now()}`,
+    // ProductData: Order.ProductData,
+    // Branch: { id: 'BRN001', branchType: 'AKC OUT', branchName: 'Branch A', phone: '1234567890', location: 'Location A',routeType:'ROUTE 1',routeName:'Route 1' },    
+    // OrderId: `ORD${Date.now()}${"John Doe"}${Math.floor(Math.random() * 1000)}`, // Unique Order ID
+    // OrderDate: new Date().toISOString(),
+    // TotalAmount: Order.TotalAmount,
+    // OrderStatus: 'Pending',
+    // PaymentStatus: 'Pending',
+    // ReceivedStatus: 'Pending'
+    // };
+    // console.log('Updated Order:', updatedOrder);
+    // const res =await dispatch(updatedOrder(updatedOrder));
+      // if (res.type === 'Order/addToMyOrders') {
+      //   Alert.alert('Order Placed', 'Your order has been placed successfully!', [
+      //     { text: 'OK', onPress: () => navigation.navigate('OrderScreen') },
+      //   ]);
 
-      }
+      // }
   };
 
 // Function to open a file
@@ -156,8 +159,14 @@ const handleModalConfirm = async () => {
       id,
       receivedQty: data.qty,
     }));
+    console.log("received Items : ",receivedItems);
+    
+    const updateReceivedItems:UpdateReceivedItems = { OrderId: Order._id, Items:{
+ ReceivedItems:receivedItems
+} }
+console.log("updateReceivedItems : ",updateReceivedItems);
 
-  const res = await dispatch(confirmOrder({ id: Order.OrderId, receivedItems }));
+  const res = await dispatch(updateOrderData(updateReceivedItems));
 
   if (res.type === 'Order/confirmOrder') {
     setModalVisible(false);
@@ -170,16 +179,16 @@ const handleModalConfirm = async () => {
 
 
 const handleCancelOrder = async () => {
-  try {
-    const res = await dispatch(cancelOrder({id:Order.OrderId}));
-    if (res.type === 'Order/cancelOrder') {
-      Alert.alert('Order Cancelled', 'Your order has been cancelled successfully!', [
-        { text: 'OK', onPress: () => navigation.navigate('OrderScreen') },
-      ]);
-    }
-  } catch (error) {
-    console.error('Error cancelling order:', error);
-  }
+  // try {
+  //   const res = await dispatch(cancelOrder({id:Order.OrderId}));
+  //   if (res.type === 'Order/cancelOrder') {
+  //     Alert.alert('Order Cancelled', 'Your order has been cancelled successfully!', [
+  //       { text: 'OK', onPress: () => navigation.navigate('OrderScreen') },
+  //     ]);
+  //   }
+  // } catch (error) {
+  //   console.error('Error cancelling order:', error);
+  // }
 }
 const handleDownloadInvoice = async () => {
   try {
@@ -268,7 +277,7 @@ const handleDownloadInvoice = async () => {
         <View className="px-4 py-5 bg-white shadow-sm border-t border-gray-200">
           <View className="flex-row justify-between items-center">
             <Text className="text-lg font-semibold text-primary">Total Amount</Text>
-            <Text className="text-xl font-extrabold text-gray-800">₹{Order.TotalAmount.toFixed(2)}</Text>
+            <Text className="text-xl font-extrabold text-gray-800">₹{Order.TotalAmount}</Text>
           </View>
         </View>
 
@@ -302,7 +311,7 @@ const handleDownloadInvoice = async () => {
     const lineColor = index < arr.length - 1 ? (isCompleted ? 'bg-primary' : 'bg-gray-300') : '';
 
     return (
-      <View key={index} className="flex-row items-start mb-6 relative">
+      <View key={index||step.date} className="flex-row items-start mb-6 relative">
         {/* Step Indicator */}
         <View className="items-center mr-4">
           <View className={`w-5 h-5 rounded-full ${circleColor} border-2 border-white`} />
@@ -330,33 +339,33 @@ const handleDownloadInvoice = async () => {
 <View className="p-4">
   <Text className="text-lg font-bold text-gray-800 mb-2">Received Products</Text>
 
-  {Array.isArray(Order.ReceivedItems) && Order.ReceivedItems.length > 0 ? (
+  {Array.isArray(Order?.ReceivedItems) && Order.ReceivedItems.length > 0 ? (
     Order.ReceivedItems.map((receivedItem) => {
-      const product = Order.ProductData.find(p => p.id === receivedItem.id);
+      const product = Order.ProductData.find(p => p.product._id === receivedItem.id);
       if (!product) return null;
 
       return (
         <View
-          key={product.id}
+          key={product.product._id}
           className="flex-row items-center justify-between mb-3 p-4 bg-white rounded-2xl shadow-sm border border-gray-100"
         >
           <View className="flex-row items-center">
             <View className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 mr-4">
               <Image
-                source={product.image}
+                source={{uri:`${API_URL}/${product.product.image}`}}
                 className="w-full h-full"
                 resizeMode="cover"
               />
             </View>
             <View>
-              <Text className="text-base font-semibold text-gray-800">{product.name}</Text>
-              <Text className="text-sm text-gray-500">{product.unit}</Text>
-              <Text className="mt-1 text-gray-600">Received: {receivedItem.receivedQty}</Text>
-              <Text className="mt-1 text-gray-600">Price: ₹{product.price.toFixed(2)}</Text>
+              <Text className="text-base font-semibold text-gray-800">{product.product.name}</Text>
+              <Text className="text-sm text-gray-500">{product.product.unit}</Text>
+              <Text className="mt-1 text-gray-600">Received: {receivedItem?.receivedQty}</Text>
+              <Text className="mt-1 text-gray-600">Price: ₹{product.product.price}</Text>
             </View>
           </View>
           <Text className="text-lg font-bold text-textPrimary">
-            ₹{(product.price * receivedItem.receivedQty).toFixed(2)}
+            ₹{(product.product.price * receivedItem?.receivedQty)}
           </Text>
         </View>
       );

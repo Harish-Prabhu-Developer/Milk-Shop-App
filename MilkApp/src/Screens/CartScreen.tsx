@@ -1,3 +1,4 @@
+// CartScreen.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
@@ -16,13 +17,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { AppDispatch, RootState } from '@Redux/Store';
 import IncreaseButton from '@Components/Input/IncreaseButton';
 import { Swipeable } from 'react-native-gesture-handler';
-
 import CustomAlert from '@Components/Alert/CustomAert';
-import { addToMyOrders } from '@Redux/Order/OrderSlice';
-import { Order, OrderProduct } from '@Utils/@types/Order';
 import { AddToCart, CartProduct, Items } from '@Utils/@types/Cart';
 import { API_URL } from '@env';
-import { fetchCart, removeFromCart, updateCart } from '@Redux/Cart/CartSlice';
+import { fetchCart, removeFromCart, updateAddTOCart } from '@Redux/Cart/CartSlice';
+import { CreateOrder } from '@Redux/Order/OrderSlice';
 
 const CartScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -69,17 +68,18 @@ const CartScreen = () => {
 
   const renderCartItem = ({ item }: { item: Items }) => {
     const handleConfirmDelete = () => {
-      setSelectedItemId(item._id); // Save which item is being deleted
+      setSelectedItemId(item.product._id); // Save which item is being deleted
       setIsAlertVisible(true);    // Show alert
     };
 
-
-
-    const handleupdateCart = async (Id: string,Count: number) => {
-      console.log(`${Count} x ${Id} added to cart`);
+    const handleUpdatedCart=async(Id:string,count:number)=>{
+      console.log("Updated Cart",Id,count);
       
-      await dispatch(updateCart({productId: Id,quantity: Count}))
-    }
+      const updatedCartItem:AddToCart =  await {productId:Id, quantity:count}
+      await dispatch(updateAddTOCart(updatedCartItem));
+    };
+
+
     return (
       <Swipeable
         renderLeftActions={() => <DeleteAction onDelete={handleConfirmDelete} />}
@@ -109,7 +109,7 @@ const CartScreen = () => {
 
             <View className="mt-3 mx-10">
                 <IncreaseButton
-                  OnCount={(Count) =>handleupdateCart(item._id, Count)}
+                  OnCount={(Count) =>handleUpdatedCart(item.product._id,Count)}
                   initialCount={item.quantity}
                 />
 
@@ -123,42 +123,7 @@ const CartScreen = () => {
 
 
 const handleCheckout = async () => {
-  // // Map cart items to OrderProduct structure
-  // const productData: OrderProduct[] = cartData.map(item => ({
-  //   id: item._id,
-  //   name: item.name,
-  //   price: item.price,
-  //   quantity: item.quantity,
-  //   total: item.price * item.quantity,
-  //   image: item.image,
-  //   unit: item.unit,
-  //   description: item.description
-  // }));
-
-  // // Generate order details
-  // const orderDetails: Order = {
-  //   id: `ORD${Date.now()}`, // Temporary ID, replace with actual ID from backend
-  //   ProductData: productData,
-  //   Branch: { id: 'BRN001', branchType: 'AKC OUT', branchName: 'Branch A', phone: '1234567890', location: 'Location A',routeType:'ROUTE 1',routeName:'Route 1' },
-  //   OrderId: `ORD${Date.now()}${"John Doe"}${Math.floor(Math.random() * 1000)}`, // Unique Order ID
-  //   OrderDate: new Date().toISOString(),
-  //   TotalAmount: totalAmount,
-  //   OrderStatus: 'Delivered',
-  //   PaymentStatus: 'Failed',
-  //   // DeliveryStatus: 'Out for Delivery',
-  //   ReceivedStatus: 'Pending'
-  // };
-
-  //  const res =await dispatch(addToMyOrders(orderDetails));
-  // if (res.type === 'Order/addToMyOrders') {
-  //   Alert.alert('Order Placed', 'Your order has been placed successfully!', [
-  //     { text: 'OK', onPress: () => navigation.navigate('TabBar') },
-  //   ]);
-  //   // Clear cart after successful order placement
-  //     dispatch(clearCart());
-  // }
-   
-
+  await dispatch(CreateOrder());
 };
 
   return (

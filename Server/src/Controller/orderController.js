@@ -54,7 +54,7 @@ export const updateOrder = async (req, res) => {
         const { id } = req.params;
         const { ReceivedItems, ReceivedStatus, ReceivedDate, ...rest } = req.body;
 
-        const order = await OrderModel.findById(id).populate("ProductData.product");
+        const order = await OrderModel.findById(id).populate("ProductData.product").populate("Branch","_id branchName email phone role");
         if (!order) return res.status(404).json({ msg: "Order not found" });
 
         // If ReceivedItems is provided, update them
@@ -120,7 +120,7 @@ export const deleteOrder = async (req, res) => {
 export const getOrder = async (req, res) => {
     try {
         const userId = req.user._id;
-        const orders = await OrderModel.find({ Branch: userId }).populate("ProductData.product Branch");
+        const orders = await OrderModel.find({ Branch: userId }).populate("ProductData.product").populate("Branch","_id branchName email phone role");
         res.status(200).json(orders);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -130,7 +130,7 @@ export const getOrder = async (req, res) => {
 // Get all Orders (Admin)
 export const getAllOrders = async (req, res) => {
     try {
-        const orders = await OrderModel.find().populate("ProductData.product Branch");
+        const orders = await OrderModel.find().populate("ProductData.product").populate("Branch","_id branchName email phone role");
         res.status(200).json(orders);
     } catch (error) {
         res.status(500).json({ error: error.message });

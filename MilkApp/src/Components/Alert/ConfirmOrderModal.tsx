@@ -1,3 +1,5 @@
+import { Items } from '@/Utils/@types/Cart';
+import { API_URL } from '@env';
 import React from 'react';
 import {
   Modal,
@@ -8,11 +10,11 @@ import {
   Image
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { OrderProduct } from '@Utils/@types/Order';
+
 
 type ConfirmOrderModalProps = {
   visible: boolean;
-  products: OrderProduct[];
+  products: Items[];
   selectedProducts: Record<string, { selected: boolean; qty: number }>;
   onSelect: (productId: string) => void;
   onQuantityChange: (productId: string, qty: number) => void;
@@ -44,34 +46,34 @@ const ConfirmOrderModal: React.FC<ConfirmOrderModalProps> = ({
 
           <ScrollView className="mb-4">
             {products.map((product) => {
-              const isSelected = selectedProducts[product.id]?.selected;
-              const qty = selectedProducts[product.id]?.qty ?? 0;
+              const isSelected = selectedProducts[product.product._id]?.selected;
+              const qty = selectedProducts[product.product._id]?.qty ?? 0;
 
               return (
                 <View
-                  key={product.id}
+                  key={product.product._id}
                   className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-sm"
                 >
                   {/* Top Row: Image, Info, Checkbox */}
                   <View className="flex-row items-start justify-between">
                     <View className="flex-row items-start space-x-3 flex-1">
                       <Image
-                        source={product.image || require('@assets/ProductImages/Milk.png')}
+                        source={{uri:`${API_URL}/${product.product.image}`} }   //|| require('@assets/ProductImages/Milk.png')
                         className="w-14 h-14 rounded-md bg-gray-200"
                         resizeMode="cover"
                       />
                       <View className="flex-1 pl-4">
                         <Text className="text-base font-semibold text-gray-800" numberOfLines={1}>
-                          {product.name}
+                          {product.product.name}
                         </Text>
-                        <Text className="text-xs text-gray-500 mt-1">{product.unit}</Text>
+                        <Text className="text-xs text-gray-500 mt-1">{product.product.unit}</Text>
                       </View>
                     </View>
 
                     {/* Checkbox */}
                     <TouchableOpacity
                       className="mt-1"
-                      onPress={() => onSelect(product.id)}
+                      onPress={() => onSelect(product.product._id)}
                     >
                       <MaterialIcons
                         name={isSelected ? 'check-box' : 'check-box-outline-blank'}
@@ -87,7 +89,7 @@ const ConfirmOrderModal: React.FC<ConfirmOrderModalProps> = ({
                       <Text className="text-sm text-gray-600">Received Quantity</Text>
                       <View className="flex-row items-center gap-2 space-x-3">
                         <TouchableOpacity
-                          onPress={() => onQuantityChange(product.id, Math.max(0, qty - 1))}
+                          onPress={() => onQuantityChange(product.product._id, Math.max(0, qty - 1))}
                           className="w-7 h-7 bg-success rounded-full items-center justify-center"
                         >
                           <MaterialIcons name="remove" size={18} color="#fff" />
@@ -96,7 +98,7 @@ const ConfirmOrderModal: React.FC<ConfirmOrderModalProps> = ({
                         <Text className="text-base font-semibold text-gray-800">{qty}</Text>
 
                         <TouchableOpacity
-                          onPress={() => onQuantityChange(product.id, qty + 1)}
+                          onPress={() => onQuantityChange(product.product._id, qty + 1)}
                           className="w-7 h-7 bg-success rounded-full items-center justify-center"
                         >
                           <MaterialIcons name="add" size={18} color="#fff" />

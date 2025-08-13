@@ -4,10 +4,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '@Redux/Store';
-import { CartProduct } from '@Utils/@types/Products';
+import { AppDispatch, RootState } from '@Redux/Store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
+import { CartProduct } from '@Utils/@types/Cart';
+import { fetchCart } from '@Redux/Cart/CartSlice';
 type HeaderSectionProps = {
     SearchBar?: boolean;
     onSearch?: (query: string) => void;
@@ -19,14 +20,16 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
      const [searchQuery, setSearchQuery] = useState('');
      const navigation = useNavigation<StackNavigationProp<any>>();     
      const dispatch = useDispatch<AppDispatch>();
-     const cartData: CartProduct[] = useSelector((state: any) => state.Cart.Carts);
+     const cartData: CartProduct = useSelector((state: RootState) => state.Cart.Carts);
      const [displayName, setDisplayName] = useState('Branch');
   useEffect(()=>{
+    console.log("Test",cartData.items?.length ?? 0);
+    
      const getName = async () => {
         const token = await AsyncStorage.getItem("token");
         if (token) {
           const decode=jwtDecode<any>(token);
-
+          await dispatch(fetchCart());
           setDisplayName(decode.name);
         }
      }
@@ -47,7 +50,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
                 <TouchableOpacity className="relative bg-blue-800 p-2 rounded-lg"
                   onPress={() => navigation.navigate("CartScreen")}>
                   <Icon name="shopping-cart" size={20} color="#fff" />
-                  {cartData.length > 0 && (<View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />)}
+                  {(cartData.items?.length ?? 0) > 0 && (<View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />)}
                 </TouchableOpacity>
                 <TouchableOpacity className="relative bg-blue-800 p-2 rounded-lg"
                   onPress={() => console.info('Notifications Pressed')}>
