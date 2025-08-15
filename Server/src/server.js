@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from './Config/db.js';
 import router from "./Route/index.js";
 import path from "path";
+import { sendNotification } from "./Services/fcmService.js";
 
 dotenv.config();
 const app = express();

@@ -1,4 +1,4 @@
-import { Items } from "./Cart";
+import { Items } from './Cart';
 
 type OrderStatus = 'Pending' | 'Processing' | 'Delivered' | 'Cancelled';
 type PaymentStatus = 'Pending' | 'Completed' | 'Failed';
@@ -33,36 +33,43 @@ type ReceivedStatus = 'Pending' | 'Confirmed' | 'Partial' | 'Issue Reported';
 //   description: string;
 // }
 
-export interface ReceivedItem { id: String, receivedQty: Number };
+export interface ReceivedItem {
+  id: string;
+  receivedQty: number;
+}
 
 export interface Order {
   _id: string;
   OrderId: string;
   ProductData: Items[];
-  Branch?:{
-      _id: string;
-      branchName: string;
-      email: string;
-      phone: string;
-      role: string;
-  };         // e.g., "KALLIKUPPAM NKC"
+  Branch?: {
+    _id: string;
+    branchName: string;
+    email: string;
+    phone: string;
+    role: string;
+  }; // e.g., "KALLIKUPPAM NKC"
   TotalAmount: number;
   OrderStatus: OrderStatus;
   PaymentStatus: PaymentStatus;
   //DeliveryStatus: DeliveryStatus;
   ReceivedStatus: ReceivedStatus;
-  OrderDate:string;
+  OrderDate: string;
   ReceivedItems?: ReceivedItem[];
   ReceivedDate?: string;
   createdAt: string;
   updatedAt: string;
   __v: string;
-  ConfirmOrderDate?:string;
-  CancelOrderDate?:string;
+  ConfirmOrderDate?: string;
+  CancelOrderDate?: string;
+}
 
-};
-
-export interface UpdateReceivedItems{ OrderId: string; 
-  Items:{
- ReceivedItems:ReceivedItem[]
-} }
+export interface UpdateReceivedItems {
+  OrderId: string;
+  Items: {
+    ReceivedItems?: ReceivedItem[];
+    OrderStatus?: OrderStatus;
+    CancelOrderDate?: string;
+  };
+  
+}

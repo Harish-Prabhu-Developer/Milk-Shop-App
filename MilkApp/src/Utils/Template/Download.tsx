@@ -78,8 +78,9 @@ export const InvoiceTemplate = (Order: Order) =>
     </div>
 
     <div class="info">
-      <p><strong>Customer Name:</strong> ${Order.Branch?.branchName}</p>
-      <p><strong>Customer ID:</strong> ${Order.Branch?.id}</p>
+      <p><strong>Customer Name:</strong> ${Order.Branch?.branchName||"-"}</p>
+      <p><strong>Customer Email:</strong> ${Order.Branch?.email||"-"}</p>
+      <p><strong>Customer Phone:</strong> ${Order.Branch?.phone||"-"}</p>
     </div>
 
     <table>
@@ -97,11 +98,11 @@ export const InvoiceTemplate = (Order: Order) =>
         ${Order.ProductData.map((item, index) => `
           <tr>
             <td>${index + 1}</td>
-            <td>${item.name}</td>
+            <td>${item.product?.name}</td>
             <td>${item.quantity}</td>
-            <td>${item.unit}</td>
-            <td>₹${item.price.toFixed(2)}</td>
-            <td>₹${(item.price * item.quantity).toFixed(2)}</td>
+            <td>${item.product.unit}</td>
+            <td>₹${item.product.price.toFixed(2)}</td>
+            <td>₹${item.Total?item.Total:item?.product?.price* item?.quantity}</td>
           </tr>
         `).join('')}
       </tbody>

@@ -31,6 +31,10 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
           const decode=jwtDecode<any>(token);
           await dispatch(fetchCart());
           setDisplayName(decode.name);
+        }else{
+          setDisplayName('Branch');
+          console.log("No token found");
+          
         }
      }
      getName();

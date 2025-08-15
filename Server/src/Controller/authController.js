@@ -65,7 +65,7 @@ export const loginBranch = async (req, res) => {
         .json({ status: "fail", msg: "Invalid credentials" });
     }
     // Generate a JWT token
-    const token =generateToken({
+    const token = generateToken({
       _id: branch._id,
       role: branch.role,
       name: branch.branchName,
@@ -78,4 +78,6 @@ export const loginBranch = async (req, res) => {
   }
 };
 
-// Delete a branch
+// reset password link
+export const resetPassword = async (req, res) => {
+};

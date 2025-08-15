@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import IncreaseButton from '../Input/IncreaseButton';
 import { API_URL } from '@env';
 
+
 interface ProductCardProps {
   name: string;
   price: number;
@@ -19,6 +20,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ name, price, image,quantity,unit,description,nutrition, onAddToCart }: ProductCardProps) => {
   const [Quantity, setQuantity] = useState(quantity || 1); // Default quantity to 1 if not provided
+console.log("API_URL",API_URL);
 
 
   return (

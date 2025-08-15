@@ -1,4 +1,4 @@
-import { Order, UpdateReceivedItems} from '@Utils/@types/Order';
+import { Order, UpdateReceivedItems } from '@Utils/@types/Order';
 import { API_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
@@ -32,13 +32,35 @@ export const CreateOrder = createAsyncThunk<any, void, { rejectValue: string }>(
   async (_, { rejectWithValue }) => {
     try {
       const headers = await getHeaders();
-      const res = await axios.post(`${API_URL}/milkapp/order/add`, headers);
+      const res = await axios.post(`${API_URL}/milkapp/order/add`, {}, headers);
       console.log('Create Order Response:', res.data);
+      return res.data;
+    } catch (error: any) {
+      console.log(error.response);
+
+      if (!error.response)
+        return rejectWithValue('Network Error: Server unreachable.');
+      return rejectWithValue(error.response.data?.msg || 'Create Order failed');
+    }
+  },
+);
+// Update Order
+export const ReOrderData = createAsyncThunk<any, any, { rejectValue: string }>(
+  'milkapp/order/reorder/id',
+  async (OrderID: string, { rejectWithValue }) => {
+    try {
+      const headers = await getHeaders();
+      const res = await axios.post(
+        `${API_URL}/milkapp/order/reorder/${OrderID}`,
+        {},
+        headers,
+      );
+      console.log('ReOrder Response:', res.data);
       return res.data;
     } catch (error: any) {
       if (!error.response)
         return rejectWithValue('Network Error: Server unreachable.');
-      return rejectWithValue(error.response.data?.msg || 'Create Order failed');
+      return rejectWithValue(error.response.data?.msg || 'ReOrder failed');
     }
   },
 );
@@ -51,35 +73,45 @@ export const fetchOrder = createAsyncThunk<any, void, { rejectValue: string }>(
       const response = await axios.get(`${API_URL}/milkapp/order/`, headers);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.msg || 'Failed to fetch Order data');
+      return rejectWithValue(
+        error.response?.data?.msg || 'Failed to fetch Order data',
+      );
     }
-  }
+  },
 );
 // Update Order
-export const updateOrderData = createAsyncThunk<any, any, { rejectValue: string }>(
+export const updateOrderData = createAsyncThunk<
+  any,
+  any,
+  { rejectValue: string }
+>(
   'milkapp/order/edit/id',
-  async (OrderUpdateDetails:UpdateReceivedItems, { rejectWithValue }) => {
+  async (OrderUpdateDetails: UpdateReceivedItems, { rejectWithValue }) => {
     try {
       const headers = await getHeaders();
-      const res = await axios.put(`${API_URL}/milkapp/order/edit/${OrderUpdateDetails.OrderId}`, OrderUpdateDetails.Items, headers);
+
+      const res = await axios.put(
+        `${API_URL}/milkapp/order/edit/${OrderUpdateDetails.OrderId}`,
+        OrderUpdateDetails.Items,
+        headers,
+      );
       console.log('Update Order Response:', res.data);
       return res.data;
     } catch (error: any) {
-      if (!error.response) return rejectWithValue('Network Error: Server unreachable.');
+      if (!error.response)
+        return rejectWithValue('Network Error: Server unreachable.');
       return rejectWithValue(error.response.data?.msg || 'Update Order failed');
     }
-  }
+  },
 );
 const OrderSlice = createSlice({
   name: 'Order',
   initialState,
-  reducers: {
-    
-  },
+  reducers: {},
 
   extraReducers: builder => {
     builder
-      .addCase(CreateOrder.pending, (state) => {
+      .addCase(CreateOrder.pending, state => {
         state.loading = true;
         state.error = null;
       })
@@ -87,40 +119,91 @@ const OrderSlice = createSlice({
         state.loading = false;
         console.log('Add Order response : ', action.payload);
         if (action.payload.msg === 'Order created successfully') {
-        //   state.MyOrders = action.payload.order;
-            fetchOrder();
+         const updatedOrder = action.payload.order;
+          const index = state.MyOrders.findIndex(
+            o => o._id === updatedOrder._id,
+          );
+
+          if (index !== -1) {
+            // Replace existing order with updated order
+            state.MyOrders[index] = updatedOrder;
+          } else {
+            // If it's new (not found), optionally add it
+            state.MyOrders.push(updatedOrder);
+          }
         }
-      }).addCase(CreateOrder.rejected,(state,action)=>{
+      })
+      .addCase(CreateOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Add Order failed';
       })
-      .addCase(fetchOrder.pending,(state)=>{
+      .addCase(ReOrderData.pending, state => {
         state.loading = true;
         state.error = null;
-      }).addCase(fetchOrder.fulfilled,(state,action)=>{
+      })
+      .addCase(ReOrderData.fulfilled, (state, action) => {
         state.loading = false;
-        state.MyOrders = action.payload;
-      }).addCase(fetchOrder.rejected,(state,action)=>{
+        console.log('ReOrder response : ', action.payload);
+        if (action.payload.msg === 'ReOrder placed successfully') {
+          const updatedOrder = action.payload.order;
+          const index = state.MyOrders.findIndex(
+            o => o._id === updatedOrder._id,
+          );
+
+          if (index !== -1) {
+            // Replace existing order with updated order
+            state.MyOrders[index] = updatedOrder;
+          } else {
+            // If it's new (not found), optionally add it
+            state.MyOrders.push(updatedOrder);
+          }
+        }
+      })
+      .addCase(ReOrderData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'ReOrder failed';
+      })
+      .addCase(fetchOrder.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        state.MyOrders = action.payload || [];
+      })
+      .addCase(fetchOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to fetch order';
       })
-       .addCase(updateOrderData.pending, (state) => {
+      .addCase(updateOrderData.pending, state => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateOrderData.fulfilled, (state, action) => {
         state.loading = false;
         console.log('Update Order response : ', action.payload);
+
         if (action.payload.msg === 'Order updated') {
-          state.MyOrders = action.payload.order;
+          const updatedOrder = action.payload.order;
+          const index = state.MyOrders.findIndex(
+            o => o._id === updatedOrder._id,
+          );
+
+          if (index !== -1) {
+            // Replace existing order with updated order
+            state.MyOrders[index] = updatedOrder;
+          } else {
+            // If it's new (not found), optionally add it
+            state.MyOrders.push(updatedOrder);
+          }
         }
-      }).addCase(updateOrderData.rejected,(state,action)=>{
+      })
+
+      .addCase(updateOrderData.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Update Order failed';
       });
-      
   },
 });
-
 
 export default OrderSlice.reducer;

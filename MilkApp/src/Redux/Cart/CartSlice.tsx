@@ -40,6 +40,8 @@ export const addToCart = createAsyncThunk<any, AddToCart, { rejectValue: string 
   async (productAddToCart, { rejectWithValue }) => {
     try {
       const headers = await getHeaders();
+      console.log("API_URL",API_URL);
+      
       const res = await axios.post(`${API_URL}/milkapp/cart/add`, productAddToCart, headers);
       console.log('AddToCart Response:', res.data);
       return res.data;
@@ -72,6 +74,8 @@ export const fetchCart = createAsyncThunk<any, void, { rejectValue: string }>(
   async (_, { rejectWithValue }) => {
     try {
       const headers = await getHeaders();
+      console.log("API_URL",API_URL);
+      
       const response = await axios.get(`${API_URL}/milkapp/cart/`, headers);
       return response.data;
     } catch (error: any) {
