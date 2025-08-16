@@ -51,7 +51,7 @@ export const createBranch = async (req, res) => {
 export const getAllBranches = async (req, res) => {
 
   try {
-    const branchesData = await BranchModel.find();
+    const branches = await BranchModel.find();
     res.status(200).json(branches);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -62,8 +62,8 @@ export const getAllBranches = async (req, res) => {
 export const getBranch = async (req, res) => {
   try {
     const { id } = req.params;
-    const branchData = await BranchModel.findById(id);
-    if (!branchData) {
+    const branch = await BranchModel.findById(id);
+    if (!branch) {
       return res.status(404).json({ msg: "Branch not found" });
     }
     res.status(200).json(branch);
