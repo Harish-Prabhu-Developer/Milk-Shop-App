@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 admin.initializeApp({
-  credential: admin.credential.cert(JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT)),
+  credential: admin.credential.cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
 });
 
 export default admin;

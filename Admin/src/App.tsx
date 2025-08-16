@@ -3,52 +3,77 @@ import React, { useEffect, useState } from 'react';
 import '../global.css';
 import { NavigationContainer } from '@react-navigation/native';
 import SplashScreen from './screens/SplashScreen';
-import MyStack from './navigations/MyStack';
 import { Provider } from 'react-redux';
 import store from './redux/store';
+import { createStackNavigator } from '@react-navigation/stack';
+import { Product } from './@types/Product';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
+import AppDrawer from './navigations/AppDrawer';
+import ProductDetailScreen from './screens/Products/ProductDetailScreen';
+
+type RootStackParamList = {
+  LoginScreen: undefined;
+  RegisterScreen: undefined;
+  Drawer: undefined;
+  ProductDetailScreen: { Product: Product };
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-async function requestStoragePermission() {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-      {
-        'title': 'Storage Permission',
-        'message': 'This app needs access to your storage to read files.',
-        'buttonNeutral': 'Ask Me Later',
-        'buttonNegative': 'Cancel',
-        'buttonPositive': 'OK'
-      }
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log("You can use the storage");
-      // Add your logic for accessing the storage here
-    } else {
-      console.log("Storage permission denied");
-    }
-  } catch (err) {
-    console.warn(err);
-  }
-}
-
-// Call the function to request the permission
-requestStoragePermission();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   // Splash screen timer
   useEffect(() => {
-
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
+
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const loggedIn = await AsyncStorage.getItem('isLoggedIn');
+        console.log('isLoggedIn from AsyncStorage:', loggedIn);
+        setIsLoggedIn(loggedIn === 'true');
+      } catch (error) {
+        console.error('Error checking login status', error);
+        setIsLoggedIn(false);
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
+  if (isLoggedIn === null) {
+    // You can return a loading spinner here
+    return null;
+  }
+  console.log('isLoggedIn', AsyncStorage.getItem('isLoggedIn'));
+
   return (
     <Provider store={store}>
       <NavigationContainer>
-        {showSplash ? <SplashScreen /> : <MyStack />}
+        {showSplash ? (
+          <SplashScreen />
+        ) : (
+          <Stack.Navigator
+            screenOptions={{ headerShown: false }}
+            initialRouteName={isLoggedIn ? 'Drawer' : 'LoginScreen'}
+          >
+            <Stack.Screen name="LoginScreen" component={LoginScreen} />
+            <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+            <Stack.Screen name="Drawer" component={AppDrawer} />
+            <Stack.Screen
+              name="ProductDetailScreen"
+              component={ProductDetailScreen}
+            />
+          </Stack.Navigator>
+        )}
       </NavigationContainer>
     </Provider>
   );

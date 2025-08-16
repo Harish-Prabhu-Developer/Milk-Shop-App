@@ -7,7 +7,7 @@ export interface Product {
   nutrition: string;
   image: string;
   __v?: number;
-  createdBy?: string;
+  createdBy?: createdBy;
   category?: string;    // Optional: Milk, Curd, Paneer, etc.
   isActive?: boolean;   // If set to false, hide from client
 }

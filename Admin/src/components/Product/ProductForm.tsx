@@ -14,7 +14,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { Product } from '../../@types/Product';
 import DropDownPicker from 'react-native-dropdown-picker';
-
+import {launchImageLibrary, launchCamera, ImageLibraryOptions} from 'react-native-image-picker';
 interface ProductFormProps {
   onClose: () => void;
   onSubmit: (product: Product) => void;
@@ -26,7 +26,7 @@ const ProductForm = ({ onClose, onSubmit, initialValues }: ProductFormProps) => 
   const [CategoryOpen, setCategoryOpen] = useState(false);
   const [CategoryValue, setCategoryValue] = useState<string | null>(null);
   const [CategoryItems, setCategoryItems] = useState([
-    { label: 'Milk', value: 'Milk' },
+    { label: 'Milk', value: 'milk' },
   ]);
 
   // Unit Measure Dropdown
@@ -61,6 +61,60 @@ const ProductForm = ({ onClose, onSubmit, initialValues }: ProductFormProps) => 
   });
 
 
+const handleImagePick = () => {
+  Alert.alert(
+    'Upload Image',
+    'Choose an option',
+    [
+      { text: 'Camera', onPress: () => openCamera() },
+      { text: 'Gallery', onPress: () => openGallery() },
+      { text: 'Cancel', style: 'cancel' }
+    ]
+  );
+};
+
+const openGallery = () => {
+  const options: ImageLibraryOptions = {
+    mediaType: 'photo',
+    maxWidth: 800,
+    maxHeight: 800,
+    quality: 0.8,
+  };
+  launchImageLibrary(options, response => {
+    if (response.didCancel) {
+      console.log('User cancelled image picker');
+    } else if (response.errorMessage) {
+      console.log('Image Picker Error: ', response.errorMessage);
+    } else if (response.assets && response.assets.length > 0) {
+      const uri = response.assets[0].uri;
+      if (uri) {
+        setProduct(prev => ({ ...prev, image: uri }));
+      }
+    }
+  });
+};
+
+const openCamera = () => {
+  const options: ImageLibraryOptions = {
+    mediaType: 'photo',
+    maxWidth: 800,
+    maxHeight: 800,
+    quality: 0.8,
+  };
+  launchCamera(options, response => {
+    if (response.didCancel) {
+      console.log('User cancelled camera');
+    } else if (response.errorMessage) {
+      console.log('Camera Error: ', response.errorMessage);
+    } else if (response.assets && response.assets.length > 0) {
+      const uri = response.assets[0].uri;
+      if (uri) {
+        setProduct(prev => ({ ...prev, image: uri }));
+      }
+    }
+  });
+};
+
   const [nutritionList, setNutritionList] = useState<{ label: string; value: string }[]>([]);
   const [nutritionLabel, setNutritionLabel] = useState('');
   const [nutritionAmount, setNutritionAmount] = useState('');
@@ -69,6 +123,7 @@ const ProductForm = ({ onClose, onSubmit, initialValues }: ProductFormProps) => 
   useEffect(() => {
     if (initialValues) {
       setProduct({
+        _id: initialValues._id || '',
         name: initialValues.name || '',
         price: initialValues.price ?? 0,
         unit: initialValues.unit || '',
@@ -121,7 +176,7 @@ const handleSubmit = () => {
     .join(', ');
 
   const finalProduct: Product = {
-    id: initialValues?.id ?? Date.now().toString(),  // Use existing ID if editing
+    _id: initialValues?._id||'',
     name: product.name.trim(),
     price: parseFloat(product.price.toString()),
     unit: finalUnit,
@@ -163,6 +218,25 @@ const handleSubmit = () => {
       </Text>
 
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 20 }}>
+        {/* Product Image */}
+        <TouchableOpacity
+          onPress={handleImagePick}
+          activeOpacity={0.8}
+          className="items-center justify-center h-[180px] w-[60%] bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg my-4 self-center"
+        >
+          {typeof product.image === 'string' && product.image.trim() !== '' ? (
+            <Image
+              source={{ uri: product.image }}
+              className="w-full h-full rounded-md"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="flex items-center justify-center h-full">
+              <Text className="text-gray-500 text-sm">Tap to upload image</Text>
+            </View>
+          )}
+
+        </TouchableOpacity>
 
         {/* Product Name */}
         <Text className="text-lg font-bold text-gray-800 py-4">Product Name</Text>

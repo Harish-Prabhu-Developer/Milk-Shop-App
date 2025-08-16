@@ -15,7 +15,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ProductForm from '../../components/Product/ProductForm';
 import { AppDispatch } from '../../redux/store';
 import { useDispatch } from 'react-redux';
-import { removeProduct, updateProduct } from '../../redux/slices/productSlice';
+import { API_URL } from '@env';
+
 
 const ProductDetailScreen = () => {
   const route = useRoute<RouteProp<any>>();
@@ -27,28 +28,28 @@ const ProductDetailScreen = () => {
   const handleEdit = () => setEditModalVisible(true);
 
   const handleDeleteProduct = async () => {
-    try {
-      const res = await dispatch(removeProduct(product?.id));
-      if (res.type === 'products/removeProduct') {
-        ToastAndroid.show('Product Deleted', ToastAndroid.SHORT);
-      }
+    // try {
+    //   const res = await dispatch(removeProduct(product?.id));
+    //   if (res.type === 'products/removeProduct') {
+    //     ToastAndroid.show('Product Deleted', ToastAndroid.SHORT);
+    //   }
 
-    } catch (error: any) {
-      ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
-    }
-    navigation.goBack();
+    // } catch (error: any) {
+    //   ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
+    // }
+    // navigation.goBack();
   };
   const handleEditProduct = async (PRODUCT: Product) => {
-    try {
-      const res = await dispatch(updateProduct(PRODUCT));
-      if (res.type === 'products/updateProduct') {
-        ToastAndroid.show('Product Updated', ToastAndroid.SHORT);
-      }
+    // try {
+    //   const res = await dispatch(updateProduct(PRODUCT));
+    //   if (res.type === 'products/updateProduct') {
+    //     ToastAndroid.show('Product Updated', ToastAndroid.SHORT);
+    //   }
       
-    } catch (error: any) {
-      ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
-    }
-    navigation.goBack();
+    // } catch (error: any) {
+    //   ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
+    // }
+    // navigation.goBack();
   };
 
   const handleDelete = () => {
@@ -106,7 +107,7 @@ const ProductDetailScreen = () => {
                 <Image
                   source={
                     typeof product.image === 'string'
-                      ? { uri: product.image }
+                      ? { uri: `${API_URL}/${product.image}` }
                       : product.image
                   }
                   className="w-full h-full"

@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { Product } from '../../@types/Product';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { API_URL } from '@env';
 
 interface ProductCardProps {
   product: Product;
@@ -24,7 +25,7 @@ const ProductCard = ({ product, onPress, onEdit, onDelete }: ProductCardProps) =
         <View className="w-[90px] h-[90px] rounded-xl overflow-hidden bg-gray-100 mr-4">
           {product.image ? (
             <Image
-              source={typeof product.image === 'string' ? { uri: product.image } : product.image}
+              source={typeof product.image === 'string' ? { uri: `${API_URL}/${product.image}` } : product.image}
               className="w-full h-full"
               resizeMode="cover"
             />
@@ -73,7 +74,7 @@ const ProductCard = ({ product, onPress, onEdit, onDelete }: ProductCardProps) =
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => onDelete && onDelete(product.id)}
+          onPress={() => onDelete && onDelete(product._id)}
           className="flex-row items-center space-x-1"
         >
           <MaterialIcons name="delete" size={20} color="#DC2626" />

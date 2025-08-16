@@ -11,15 +11,13 @@ import RegisterScreen from '@Screens/RegisterScreen';
 import ProductDetailsScreen from '@Screens/ProductDetailsScreen';
 import Store from './Redux/Store';
 import { Provider } from 'react-redux';
-import { CartProduct, Product } from '@Utils/@types/Products';
+import { Product } from '@Utils/@types/Products';
 import CartScreen from '@Screens/CartScreen';
 import { Order } from '@Utils/@types/Order';
 import OrderDetailScreen from '@Screens/OrderDetailScreen';
-import { Platform } from 'react-native';
 import OrderScreen from '@Screens/OrderScreen';
 import {
-  requestPushNotificationPermission,
-  requestStoragePermission,
+  requestPushNotificationPermission
 } from '@Utils/PermissionFunctions/Permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

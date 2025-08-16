@@ -23,7 +23,7 @@ export const createProduct = async (req, res) => {
         });
 
         res.status(201).json({
-            message: "Product created successfully",
+            msg: "Product created successfully",
             product: newProduct
         });
     } catch (error) {
@@ -39,7 +39,7 @@ export const updateProduct = async (req, res) => {
         // Find the existing product
         const existingProduct = await ProductModel.findById(id);
         if (!existingProduct) {
-            return res.status(404).json({ message: "Product not found" });
+            return res.status(404).json({ msg: "Product not found" });
         }
 
         // If a new file is uploaded, set image to its path
@@ -58,7 +58,7 @@ export const updateProduct = async (req, res) => {
         );
 
         res.status(200).json({
-            message: "Product updated successfully",
+            msg: "Product updated successfully",
             product: updatedProduct
         });
     } catch (error) {
@@ -78,7 +78,7 @@ export const deleteProduct = async (req, res) => {
         const deletedProduct = await ProductModel.findByIdAndDelete(id);
 
         if (!deletedProduct) {
-            return res.status(404).json({ message: "Product not found" });
+            return res.status(404).json({ msg: "Product not found" });
         }
 
         // If the product had an image, delete it from the folder
@@ -119,7 +119,7 @@ export const getProduct = async (req, res) => {
         const product = await ProductModel.findById(id);
 
         if (!product) {
-            return res.status(404).json({ message: "Product not found" });
+            return res.status(404).json({ msg: "Product not found" });
         }
 
         res.status(200).json(product);

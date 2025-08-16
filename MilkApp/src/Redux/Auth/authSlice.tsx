@@ -30,6 +30,7 @@ export const login = createAsyncThunk(
     } catch (error: any) {
 
       if (!error.response) {
+        console.log('Network Error: Server unreachable.');
         return rejectWithValue('Network Error: Server unreachable.');
       }
 
