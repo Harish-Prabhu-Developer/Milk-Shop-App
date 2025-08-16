@@ -1,10 +1,13 @@
 // User.ts
 export interface Branch {
-  id: string;    // Unique client ID
+  _id: string;    // Unique client ID
   branchName: string; // e.g., "KALLIKUPPAM NKC"
   phone: string;     // Contact number
   address?: string; // Optional full address
   registeredDate?: string;
+  email: string;
+  role?:"admin" | "user";
+  password?: string;
   contactPerson?: string; // Optional contact person name
   location: string;  // Local NKC / Thiruvallur, etc.
   routeName: string; // Match with route in placement

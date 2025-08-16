@@ -15,6 +15,7 @@ import React, { useEffect, useState } from 'react';
 import { Product } from '../../@types/Product';
 import DropDownPicker from 'react-native-dropdown-picker';
 import {launchImageLibrary, launchCamera, ImageLibraryOptions} from 'react-native-image-picker';
+import { API_URL } from '@env';
 interface ProductFormProps {
   onClose: () => void;
   onSubmit: (product: Product) => void;
@@ -226,7 +227,7 @@ const handleSubmit = () => {
         >
           {typeof product.image === 'string' && product.image.trim() !== '' ? (
             <Image
-              source={{ uri: product.image }}
+              source={{ uri: `${API_URL}/${product.image}` }}
               className="w-full h-full rounded-md"
               resizeMode="cover"
             />

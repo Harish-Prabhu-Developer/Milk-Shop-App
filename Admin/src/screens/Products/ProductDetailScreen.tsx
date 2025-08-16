@@ -16,6 +16,7 @@ import ProductForm from '../../components/Product/ProductForm';
 import { AppDispatch } from '../../redux/store';
 import { useDispatch } from 'react-redux';
 import { API_URL } from '@env';
+import { deleteProduct, updateProduct } from '../../redux/slices/productSlice';
 
 
 const ProductDetailScreen = () => {
@@ -28,28 +29,52 @@ const ProductDetailScreen = () => {
   const handleEdit = () => setEditModalVisible(true);
 
   const handleDeleteProduct = async () => {
-    // try {
-    //   const res = await dispatch(removeProduct(product?.id));
-    //   if (res.type === 'products/removeProduct') {
-    //     ToastAndroid.show('Product Deleted', ToastAndroid.SHORT);
-    //   }
+    try {
+      const res = await dispatch(deleteProduct(product._id));
+      if (res.payload.msg === 'Product deleted successfully') {
+        ToastAndroid.show('Product Deleted', ToastAndroid.SHORT);
+      }
 
-    // } catch (error: any) {
-    //   ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
-    // }
-    // navigation.goBack();
+    } catch (error: any) {
+      ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
+    }
+    navigation.goBack();
   };
   const handleEditProduct = async (PRODUCT: Product) => {
-    // try {
-    //   const res = await dispatch(updateProduct(PRODUCT));
-    //   if (res.type === 'products/updateProduct') {
-    //     ToastAndroid.show('Product Updated', ToastAndroid.SHORT);
-    //   }
+    try {
+    const formData = new FormData();
+
+    // Append fields
+
+    formData.append('name', PRODUCT.name);
+    formData.append('price', PRODUCT.price.toString());
+    formData.append('unit', PRODUCT.unit);
+    formData.append('description', PRODUCT.description || '');
+    formData.append('nutrition', PRODUCT.nutrition || '');
+    formData.append('category', PRODUCT.category || '');
+    formData.append('isActive', PRODUCT.isActive ? 'true' : 'false');
+
+    // Append image (if selected)
+    if (PRODUCT.image && PRODUCT.image.startsWith('file://')) {
+      formData.append('image', {
+        uri: PRODUCT.image,
+        type: 'image/png', // adjust if needed
+        name: 'product.png',
+      } as any);
+    }
+    const updatedProductData={
+      id:PRODUCT._id,
+      data:formData
+    };
+      const res = await dispatch(updateProduct(updatedProductData));
+      if (res.payload.msg === 'Product updated successfully') {
+        ToastAndroid.show('Product Updated', ToastAndroid.SHORT);
+      }
       
-    // } catch (error: any) {
-    //   ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
-    // }
-    // navigation.goBack();
+    } catch (error: any) {
+      ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
+    }
+    navigation.goBack();
   };
 
   const handleDelete = () => {

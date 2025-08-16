@@ -1,6 +1,7 @@
 // ProductScreen.tsx
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
   Text,
@@ -17,29 +18,35 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../redux/store';
 import { Product } from '../../@types/Product';
-import { fetchProducts, newProduct } from '../../redux/slices/productSlice';
+import {
+  deleteProduct,
+  fetchProducts,
+  newProduct,
+  updateProduct,
+} from '../../redux/slices/productSlice';
 import { RefreshControl } from 'react-native';
 
 const ProductScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(false);
+
   const navigation = useNavigation<StackNavigationProp<any>>();
   const dispatch = useDispatch<AppDispatch>();
   const products: Product[] = useSelector(
     (state: RootState) => state.product.products,
   );
-
+  const { loading, error } = useSelector((state: RootState) => state.product);
+  const [isloading, setisLoading] = useState(loading);
   const fetchProductsData = async () => {
     try {
-      setLoading(true);
+      setisLoading(true);
       await dispatch(fetchProducts());
       await new Promise(resolve => setTimeout(resolve, 1000)); // simulate delay
     } catch (error) {
       console.log('Error fetching Orders:', error);
     } finally {
-      setLoading(false);
+      setisLoading(false);
     }
   };
 
@@ -60,30 +67,30 @@ const ProductScreen = () => {
     console.log('Product Added:', product);
 
     try {
-          const formData = new FormData();
+      const formData = new FormData();
 
-    // Append fields
-    formData.append('name', product.name);
-    formData.append('price', product.price.toString());
-    formData.append('unit', product.unit);
-    formData.append('description', product.description || '');
-    formData.append('nutrition', product.nutrition || '');
-    formData.append('category', product.category || '');
-    formData.append('isActive', product.isActive ? 'true' : 'false');
+      // Append fields
+      formData.append('name', product.name);
+      formData.append('price', product.price.toString());
+      formData.append('unit', product.unit);
+      formData.append('description', product.description || '');
+      formData.append('nutrition', product.nutrition || '');
+      formData.append('category', product.category || '');
+      formData.append('isActive', product.isActive ? 'true' : 'false');
 
-    // Append image (if selected)
-    if (product.image && product.image.startsWith('file://')) {
-      formData.append('image', {
-        uri: product.image,
-        type: 'image/png', // adjust if needed
-        name: 'product.png',
-      } as any);
-    }
-    console.log('Form Data:', formData);
+      // Append image (if selected)
+      if (product.image && product.image.startsWith('file://')) {
+        formData.append('image', {
+          uri: product.image,
+          type: 'image/png', // adjust if needed
+          name: 'product.png',
+        } as any);
+      }
+      console.log('Form Data:', formData);
       // If you use Redux Toolkit (RTK Query or Thunks)
       const response = await dispatch(newProduct(formData));
-      console.log("Response:", response);
-      
+      console.log('Response:', response);
+
       if (response.payload) {
         ToastAndroid.show('Product Added', ToastAndroid.SHORT);
       }
@@ -96,30 +103,47 @@ const ProductScreen = () => {
 
   // ✅ Delete Product Handler
   const handleDeleteProduct = async (productId: string) => {
-    console.log('Product Deleted : ', productId);
-
-    // try {
-    //   const res = await dispatch(removeProduct(productId));
-    //   if (res.type === 'products/removeProduct') {
-    //     ToastAndroid.show('Product Deleted', ToastAndroid.SHORT);
-    //   }
-    // } catch (error: any) {
-    //   ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
-    // }
+    try {
+      const res = await dispatch(deleteProduct(productId));
+      if (res.payload.msg === 'Product deleted successfully') {
+        ToastAndroid.show('Product Deleted', ToastAndroid.SHORT);
+      }
+    } catch (error: any) {
+      ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
+    }
   };
 
   // ✅ Edit Product Handler
   const handleEditProduct = async (product: Product) => {
-    console.log('Product Updated : ', product);
+    try {
+      const formData = new FormData();
+      formData.append('name', product.name);
+      formData.append('price', product.price.toString());
+      formData.append('unit', product.unit);
+      formData.append('description', product.description || '');
+      formData.append('nutrition', product.nutrition || '');
+      formData.append('category', product.category || '');
+      formData.append('isActive', product.isActive ? 'true' : 'false');
 
-    // try {
-    //   const res = await dispatch(updateProduct(product));
-    //   if (res.type === 'products/updateProduct') {
-    //     ToastAndroid.show('Product Updated', ToastAndroid.SHORT);
-    //   }
-    // } catch (error: any) {
-    //   ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
-    // }
+      // Append image (if selected)
+      if (product.image && product.image.startsWith('file://')) {
+        formData.append('image', {
+          uri: product.image,
+          type: 'image/png', // adjust if needed
+          name: 'product.png',
+        } as any);
+      }
+      const updatedProductData = {
+        id: product._id,
+        data: formData,
+      };
+      const res = await dispatch(updateProduct(updatedProductData));
+      if (res.payload.msg === 'Product updated successfully') {
+        ToastAndroid.show('Product Updated', ToastAndroid.SHORT);
+      }
+    } catch (error: any) {
+      ToastAndroid.show(`${error.message}`, ToastAndroid.SHORT);
+    }
     setEditingProduct(null);
     setModalVisible(false);
   };
@@ -130,7 +154,7 @@ const ProductScreen = () => {
       <Header title="Products" />
 
       {/* Product List */}
-      {loading ? (
+      {isloading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#4B5563" />
           <Text className="mt-2 text-gray-700">Loading products...</Text>

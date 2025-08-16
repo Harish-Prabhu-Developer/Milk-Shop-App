@@ -25,15 +25,17 @@ const UserCard = ({ branch, onEdit, onDelete }: UserCardProps) => {
     );
   };
   return (
-    <View className='flex-row items-center justify-between rounded-lg border border-gray-300 shadow-md p-4 bg-white gap-2'>
+    <View className='flex-row items-center justify-between rounded-lg border border-gray-300 shadow-md p-4 my-2 bg-white gap-2'>
       
       <View className='flex gap-1'>
           <Text className='text-lg text-primary font-semibold'>{branch.branchName}</Text>
           {branch.contactPerson&&keyValueStyle({key: 'Contact Person', value: branch.contactPerson})}
           {keyValueStyle({key: 'Phone', value: branch.phone})}
+          {keyValueStyle({key: 'Email', value: branch.email})}
           {keyValueStyle({key: 'Location', value: branch.location})}
           {keyValueStyle({key: 'Route Name', value: branch.routeName})}
           {keyValueStyle({key: 'Type', value: branch.type})}
+          
           {branch.registeredDate && keyValueStyle({key: 'Registered Date', value: formatDate(branch.registeredDate)})}
 
           <View className='my-2' >
@@ -44,6 +46,8 @@ const UserCard = ({ branch, onEdit, onDelete }: UserCardProps) => {
             </View>
             )}
           </View>
+          {branch?.role==="admin"&& <View className='border border-red-300 bg-red-100 items-center px-2 py-1 mx-2 w-20 rounded-2xl'>
+                <Text className='font-semibold text-red-600'>Admin</Text></View>}
       </View>
       <View className='flex-row items-start gap-4 justify-end '>
         <TouchableOpacity onPress={onEdit} className='border border-blue-500 p-2 rounded-lg'>
