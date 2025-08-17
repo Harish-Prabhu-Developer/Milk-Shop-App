@@ -172,8 +172,8 @@ const OrderDetailScreen = () => {
   const handleModalConfirm = async () => {
     const receivedItems = Object.entries(selectedProducts)
       .filter(([_, data]) => data.selected && data.qty > 0)
-      .map(([id, data]) => ({
-        id,
+      .map(([productId, data]) => ({
+        productId,
         receivedQty: data.qty,
       }));
     console.log('received Items : ', receivedItems);
@@ -431,7 +431,7 @@ const OrderDetailScreen = () => {
           Order.ReceivedItems.length > 0 ? (
             Order.ReceivedItems.map(receivedItem => {
               const product = Order.ProductData.find(
-                p => p.product._id === receivedItem.id,
+                p => p.product._id === receivedItem.productId,
               );
               if (!product) return null;
 

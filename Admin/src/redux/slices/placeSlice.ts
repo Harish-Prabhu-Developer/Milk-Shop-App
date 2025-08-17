@@ -245,8 +245,14 @@ const placeSlice = createSlice({
     builder.addCase(newRoute.fulfilled, (state, action) => {
       state.loading = false;
       console.log('Create Route Response:', action.payload);
-      if (action.payload.msg === 'Route created successfully') {
-        state.places.push(action.payload.place);
+      if (action.payload.msg === 'Route added successfully') {
+        const index = state.places.findIndex(
+          place => place._id === action.payload.place._id,
+        );
+        if (index !== -1) {
+          state.places[index] = action.payload.place;
+        }
+      
       }
     });
     builder.addCase(newRoute.rejected, (state, action) => {
@@ -280,10 +286,14 @@ const placeSlice = createSlice({
     builder.addCase(deleteRoute.fulfilled, (state, action) => {
       state.loading = false;
       console.log('Delete Route Response:', action.payload);
-      if (action.payload.msg === 'Route deleted successfully') {
-        state.places = state.places.filter(
-          place => place._id !== action.payload.place._id,
+      if (action.payload.msg === 'Route removed successfully') {
+        const index = state.places.findIndex(
+          place => place._id === action.payload.place._id,
         );
+        if (index !== -1) {
+          state.places[index] = action.payload.place;
+        }
+      
       }
     });
     builder.addCase(deleteRoute.rejected, (state, action) => {

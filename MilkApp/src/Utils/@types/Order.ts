@@ -34,7 +34,7 @@ type ReceivedStatus = 'Pending' | 'Confirmed' | 'Partial' | 'Issue Reported';
 // }
 
 export interface ReceivedItem {
-  id: string;
+  productId: string;
   receivedQty: number;
 }
 

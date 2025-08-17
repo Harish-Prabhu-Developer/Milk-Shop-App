@@ -78,7 +78,7 @@ const PlaceScreen = () => {
     <View className="flex-1 bg-white">
       {/* Header */}
       <Header title={'Delivery Place'} />
-    {loading?(
+    {isloading?(
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#4B5563" />
           <Text className="mt-2 text-gray-700">Loading Places...</Text>
