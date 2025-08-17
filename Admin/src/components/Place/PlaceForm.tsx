@@ -44,7 +44,7 @@ const PlaceForm = ({
     Route: initialValues?.Route || [],
     type: initialValues?.type || 'COMPANY VEHICLE',
     distance: initialValues?.distance || '',
-    id: initialValues?.id || `${Date.now()}`,
+    id: initialValues?._id || ''
   });
 
   // Vehicle Type Dropdown
@@ -79,14 +79,18 @@ const PlaceForm = ({
     if (formtype === 'Place') {
       if (initialValues) {
         const updatedplace: Place = {
-          ...Data,
+          _id:Data.id,
+          location:Data.location,
+          RouteGroup: Data.RouteGroup,
+          distance: Data.distance,
+          Route: Data.Route || [],
           type: Typevalue || 'COMPANY VEHICLE',
         };
 
         onSubmit(updatedplace, 'Place', true);
       } else {
         const newPlace: Place = {
-          id: Data.id,
+          _id: "",
           location: Data.location,
           type: Typevalue || 'COMPANY VEHICLE',
           RouteGroup: Data.RouteGroup,
@@ -98,7 +102,7 @@ const PlaceForm = ({
     } else if (formtype === 'Route') {
       if (initialValues?.Route?.length===1) {
         const updatedRoute: Route = {
-          id: initialValues?.Route?.[0].id || Date.now().toString(),
+          _id: initialValues?.Route?.[0]._id || "",
           'Route type': RouteTypevalue as ROUTETYPES,
           'Branch Name': branchName.trim(),
         };
@@ -114,7 +118,7 @@ const PlaceForm = ({
           return;
         }
         const newRoute: Route = {
-          id: Date.now().toString(),
+          _id: '',
           'Route type': RouteTypevalue as ROUTETYPES,
           'Branch Name': branchName.trim(),
         };

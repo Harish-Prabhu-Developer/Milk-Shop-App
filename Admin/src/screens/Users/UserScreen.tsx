@@ -19,14 +19,14 @@ import { deleteBranch, fetchBranch, newBranch, updateBranch } from '../../redux/
 import { Text } from 'react-native';
 
 const UserScreen = () => {
-  const [refreshing, setRefreshing] = useState(false);
+
   const dispatch = useDispatch<AppDispatch>();
   const [modalVisible, setModalVisible] = useState(false);
   const [editData, setEditData] = useState<Branch | null>(null);
   const BranchData: Branch[] = useSelector(
     (state: RootState) => state.user.users,
   );
-
+  const [refreshing, setRefreshing] = useState(false);
   const { loading, error } = useSelector((state: RootState) => state.user);
   const [isloading, setisLoading] = useState(loading);
   const fetchUsersData = async () => {
@@ -70,7 +70,7 @@ const UserScreen = () => {
       };
       console.log('updatedataBranch : ', updatedataBranch);
 
-      const res =await dispatch(updateBranch(data));
+      const res =await dispatch(updateBranch(updatedataBranch));
       if (res.payload.msg === 'Branch updated successfully') {
         ToastAndroid.show('User Edited', ToastAndroid.SHORT);
       } else {

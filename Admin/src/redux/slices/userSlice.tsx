@@ -58,24 +58,7 @@ export const fetchBranch = createAsyncThunk<any, void, { rejectValue: string }>(
       const headers = await getHeaders();
       const res = await axios.get(`${API_URL}/milkapp/branch/all`, headers);
       console.log('Fetch Branch Response:', res.data);
-
-      // get token safely
-      const token = await AsyncStorage.getItem("token");
-      if (!token) {
-        console.error("No token found in AsyncStorage");
-        return res.data; // return everything
-      }
-
-      // decode
-      const decodedToken: any = jwtDecode(token);
-      console.log("decodedToken:", decodedToken);
-
-      // filter out logged-in branch
-      const filteredUsers = res.data.filter(
-        (user: any) => user._id !== decodedToken._id
-      );
-
-      return filteredUsers; // this goes straight to reducer
+      return res.data;
     } catch (error: any) {
       if (!error.response)
         return rejectWithValue('Network Error: Server unreachable.');

@@ -64,7 +64,7 @@ const PlaceCard = ({
 
         <FlatList
           data={Place.Route}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <View className="mb-2 flex-row items-center bg-gray-100 border border-gray-300 px-2 py-3 my-2 rounded-lg justify-between">
               <View className="gap-2">
@@ -74,13 +74,13 @@ const PlaceCard = ({
               <View className="flex-row items-center gap-4">
                 <TouchableOpacity
                   className="bg-white border border-blue-500 px-2 py-2 rounded-lg"
-                  onPress={() => onRouteEdit?.(item.id, Place.id)}
+                  onPress={() => onRouteEdit?.(item._id, Place._id)}
                 >
                   <MaterialIcons name="edit" size={16} color="#3b82f6" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="bg-white border border-red-500 px-2 py-2 rounded-lg"
-                  onPress={() => onRouteDelete?.(item.id, Place.id)}
+                  onPress={() => onRouteDelete?.(item._id, Place._id)}
                 >
                   <MaterialIcons name="delete" size={16} color="#ef4444" />
                 </TouchableOpacity>

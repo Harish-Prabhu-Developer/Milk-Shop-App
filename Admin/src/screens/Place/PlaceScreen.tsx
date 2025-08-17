@@ -1,14 +1,15 @@
 // PlaceScreen.tsx
-import { View, Text, FlatList, Modal } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, FlatList, Modal, RefreshControl, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import PlaceCard from '../../components/Place/PlaceCard';
 import Header from '../../components/Header';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../redux/store';
-import { Place, Route } from '../../@types/Place';
+import { AddPlace, AddRoute, Place, Route } from '../../@types/Place';
 import FloatingButton from '../../components/FloatingButton';
 import PlaceForm from '../../components/Place/PlaceForm';
-import { addPlace, addRoute, removePlace, removeRoute, updatePlace, updateRoute } from '../../redux/slices/placeSlice';
+import { deletePlace, deleteRoute, fetchPlaces, newPlace, newRoute, updatePlace, updateRoute } from '../../redux/slices/placeSlice';
+
 
 const PlaceScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -21,19 +22,50 @@ const PlaceScreen = () => {
 
   const [editingRouteId, setEditingRouteId] = useState<string | null>(null);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const { loading, error } = useSelector((state: RootState) => state.user);
+  const [isloading, setisLoading] = useState(loading);
+  const fetchPlacesData = async () => {
+    try {
+      setisLoading(true);
+      await dispatch(fetchPlaces());
+      await new Promise(resolve => setTimeout(resolve, 1000)); // simulate delay
+    } catch (error) {
+      console.log('Error fetching Places:', error);
+    } finally {
+      setisLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    fetchPlacesData();
+    console.log('Places:', places);
+  }, []);
+
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchPlacesData();
+    setRefreshing(false);
+  }, []);
   const handleSubmit = (data: Place | Route, type: 'Place' | 'Route',EditStatus:boolean) => {
     if (type === 'Place') {
       if (EditStatus) {
-        dispatch(updatePlace(data as Place));
+        console.log('Editing Place:', data);
+        
+        dispatch(updatePlace({id:data._id,data:data as AddPlace}));
       }else{
-        dispatch(addPlace(data as Place));
+        console.log('Adding Place:', data);
+        dispatch(newPlace(data as Place));
       }
     } else if (type === 'Route' && selectedPlaceId) {
       if (EditStatus) {
-        dispatch(updateRoute({ placeId: selectedPlaceId, route: data as Route }));
+        console.log('Editing Route:', data);
+        dispatch(updateRoute({ placeId: selectedPlaceId, routeId: data._id, data: data as AddRoute }));
       } else {
-        dispatch(addRoute({ placeId: selectedPlaceId, route: data as Route }));
+        console.log('Adding Route:', data);
+        
+        dispatch(newRoute({ id: selectedPlaceId, data:data as AddRoute }));
       }
     }
     setModalVisible(false);
@@ -46,14 +78,20 @@ const PlaceScreen = () => {
     <View className="flex-1 bg-white">
       {/* Header */}
       <Header title={'Delivery Place'} />
+    {loading?(
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#4B5563" />
+          <Text className="mt-2 text-gray-700">Loading Places...</Text>
+        </View>
+    ):(
       <FlatList
         data={places}
-        keyExtractor={(item, index) => item.id || index.toString()}
+        keyExtractor={(item, index) => item._id || index.toString()}
         renderItem={({ item }) => (
           <PlaceCard
             Place={item}
             onAddRoute={() => {
-              setSelectedPlaceId(item.id);
+              setSelectedPlaceId(item._id);
               setFormType('Route');
               setEditingRouteId(null);
               setModalVisible(true);
@@ -64,7 +102,7 @@ const PlaceScreen = () => {
               setModalVisible(true);
             }}
             onPlaceDelete={() => {
-              dispatch(removePlace(item.id));
+              dispatch(deletePlace(item._id));
             }}
             onRouteEdit={(routeId, placeId) => {
               setSelectedPlaceId(placeId);
@@ -73,16 +111,21 @@ const PlaceScreen = () => {
               setModalVisible(true);
             }}
             onRouteDelete={(routeId, placeId) => {
-              dispatch(removeRoute({ placeId, routeId }));
+              dispatch(deleteRoute({ placeId, routeId }));
             }}
+  
           />
         )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         ListEmptyComponent={() => (
-          <View className=" items-center justify-center">
+          <View className=" flex-1 items-center justify-center">
             <Text className="text-gray-500 font-bold">No places available</Text>
           </View>
         )}
       />
+    )}
 
       <FloatingButton
         onPress={() => {
@@ -105,9 +148,9 @@ const PlaceScreen = () => {
               formtype === 'Place'
                 ? editingPlace || (null)
                 : (() => {
-                    const place = places.find(p => p.id === selectedPlaceId);
+                    const place = places.find(p => p._id === selectedPlaceId);
                     const route = place?.Route.find(
-                      r => r.id === editingRouteId,
+                      r => r._id === editingRouteId,
                     );
                     return {
                       ...place,
