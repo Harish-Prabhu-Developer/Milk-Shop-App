@@ -21,6 +21,7 @@ import { fetchOrder } from '../../redux/slices/orderSlice';
 import Tabs from '../../components/Order/Tab/Tabs';
 import OrderCard from '../../components/Order/OrderCard';
 import { Modal } from 'react-native';
+import { formatDate, GetDay, GetTime } from '../../utils/CustomFunctions/DateFunctions';
 
 const OrderScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -68,7 +69,9 @@ if (searchQuery) {
 
   data = data.filter(order =>
     // Order-level fields
-    order.OrderDate?.toLowerCase().includes(query) ||
+    formatDate(order.OrderDate).toLowerCase().includes(query) ||
+    GetTime(order.OrderDate).toLowerCase().includes(query) ||
+    GetDay(order.OrderDate).toLowerCase().includes(query) ||
     order.Branch?.branchName?.toLowerCase().includes(query) ||
     order.Branch?.email?.toLowerCase().includes(query) ||
     order.Branch?.phone?.toLowerCase().includes(query) ||
@@ -93,7 +96,7 @@ if (searchQuery) {
       data = data.filter(order => order.OrderStatus === selectedStatus);
     }
 
-    // date filter example (Last 7 days)
+    // date filter example (Last 2 days)
     if (dateFilter === 'last7days') {
       const now = new Date();
       const sevenDaysAgo = new Date();
@@ -266,7 +269,7 @@ if (searchQuery) {
             </TouchableOpacity>
 
             {/* Actions */}
-            <View className="flex-row justify-end mt-4 space-x-3">
+            <View className="flex-row justify-end gap-4 mt-4 space-x-3">
               <TouchableOpacity
                 onPress={() => {
                   setSelectedStatus(null);

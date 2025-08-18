@@ -421,7 +421,6 @@ const OrderDetailScreen = () => {
         </View>
 
         {/* Received Products */}
-        {/* Received Products */}
         <View className="p-4">
           <Text className="text-lg font-bold text-gray-800 mb-2">
             Received Products

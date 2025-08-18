@@ -7,6 +7,7 @@ const ReportScreen = () => {
     <View className='flex-1 bg-white'>
       {/* Header */}
       <Header title={'Reports'} />
+      {/* Content */}
     </View>
   )
 }

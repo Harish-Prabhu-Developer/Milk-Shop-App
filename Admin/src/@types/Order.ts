@@ -77,6 +77,7 @@ export interface UpdateReceivedItems {
     ReceivedItems?: ReceivedItem[];
     OrderStatus?: OrderStatus;
     CancelOrderDate?: string;
+    ConfirmOrderDate?: string;
   };
   
 }
