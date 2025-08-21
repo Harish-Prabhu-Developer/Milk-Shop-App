@@ -17,7 +17,7 @@ const initialState: CartState = {
     items: [], // ✅ empty array so .length works
     createdAt: '',
     updatedAt: '',
-    totalAmount: 0
+    totalAmount: 0,
   },
   loading: false,
   error: null,
@@ -35,38 +35,50 @@ const getHeaders = async () => {
 // ---------- Thunks ----------
 
 // Add to Cart
-export const addToCart = createAsyncThunk<any, AddToCart, { rejectValue: string }>(
-  'milkapp/cart/add',
-  async (productAddToCart, { rejectWithValue }) => {
-    try {
-      const headers = await getHeaders();
-      console.log("API_URL",API_URL);
-      
-      const res = await axios.post(`${API_URL}/milkapp/cart/add`, productAddToCart, headers);
-      console.log('AddToCart Response:', res.data);
-      return res.data;
-    } catch (error: any) {
-      if (!error.response) return rejectWithValue('Network Error: Server unreachable.');
-      return rejectWithValue(error.response.data?.msg || 'Add to cart failed');
-    }
+export const addToCart = createAsyncThunk<
+  any,
+  AddToCart,
+  { rejectValue: string }
+>('milkapp/cart/add', async (productAddToCart, { rejectWithValue }) => {
+  try {
+    const headers = await getHeaders();
+    console.log('API_URL', API_URL);
+
+    const res = await axios.post(
+      `${API_URL}/milkapp/cart/add`,
+      productAddToCart,
+      headers,
+    );
+    console.log('AddToCart Response:', res.data);
+    return res.data;
+  } catch (error: any) {
+    if (!error.response)
+      return rejectWithValue('Network Error: Server unreachable.');
+    return rejectWithValue(error.response.data?.msg || 'Add to cart failed');
   }
-);
+});
 
 // Update Cart
-export const updateAddTOCart = createAsyncThunk<any, AddToCart, { rejectValue: string }>(
-  'milkapp/cart/update',
-  async (updateCartItem, { rejectWithValue }) => {
-    try {
-      const headers = await getHeaders();
-      const res = await axios.put(`${API_URL}/milkapp/cart/update`, updateCartItem, headers);
-      console.log('Update Cart Response:', res.data);
-      return res.data;
-    } catch (error: any) {
-      if (!error.response) return rejectWithValue('Network Error: Server unreachable.');
-      return rejectWithValue(error.response.data?.msg || 'Update cart failed');
-    }
+export const updateAddTOCart = createAsyncThunk<
+  any,
+  AddToCart,
+  { rejectValue: string }
+>('milkapp/cart/update', async (updateCartItem, { rejectWithValue }) => {
+  try {
+    const headers = await getHeaders();
+    const res = await axios.put(
+      `${API_URL}/milkapp/cart/update`,
+      updateCartItem,
+      headers,
+    );
+    console.log('Update Cart Response:', res.data);
+    return res.data;
+  } catch (error: any) {
+    if (!error.response)
+      return rejectWithValue('Network Error: Server unreachable.');
+    return rejectWithValue(error.response.data?.msg || 'Update cart failed');
   }
-);
+});
 
 // Fetch Cart
 export const fetchCart = createAsyncThunk<any, void, { rejectValue: string }>(
@@ -74,48 +86,55 @@ export const fetchCart = createAsyncThunk<any, void, { rejectValue: string }>(
   async (_, { rejectWithValue }) => {
     try {
       const headers = await getHeaders();
-      console.log("API_URL",API_URL);
-      
+      console.log('API_URL', API_URL);
+
       const response = await axios.get(`${API_URL}/milkapp/cart/`, headers);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.msg || 'Failed to fetch Cart data');
+      return rejectWithValue(
+        error.response?.data?.msg || 'Failed to fetch Cart data',
+      );
     }
-  }
+  },
 );
 
 // Remove from Cart
-export const removeFromCart = createAsyncThunk<any, string, { rejectValue: string }>(
-  'milkapp/cart/remove',
-  async (id, { rejectWithValue }) => {
-    try {
-      const headers = await getHeaders();
-      const response = await axios.delete(`${API_URL}/milkapp/cart/remove/${id}`, headers);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.msg || 'Failed to remove Cart data');
-    }
+export const removeFromCart = createAsyncThunk<
+  any,
+  string,
+  { rejectValue: string }
+>('milkapp/cart/remove', async (id, { rejectWithValue }) => {
+  try {
+    const headers = await getHeaders();
+    const response = await axios.delete(
+      `${API_URL}/milkapp/cart/remove/${id}`,
+      headers,
+    );
+    return response.data;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.msg || 'Failed to remove Cart data',
+    );
   }
-);
+});
 
 // ---------- Slice ----------
 const CartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {},
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // Add to cart
-    builder.addCase(addToCart.pending, (state) => {
+    builder.addCase(addToCart.pending, state => {
       state.loading = true;
       state.error = null;
     });
     builder.addCase(addToCart.fulfilled, (state, action) => {
       state.loading = false;
-      console.log('Add to Cart response : ',action.payload)
-      if (action.payload.msg==="Product added to cart") {
-        state.Carts = action.payload.cart;        
+      console.log('Add to Cart response : ', action.payload);
+      if (action.payload.msg === 'Product added to cart') {
+        state.Carts = action.payload.cart;
       }
-
     });
     builder.addCase(addToCart.rejected, (state, action) => {
       state.loading = false;
@@ -123,14 +142,14 @@ const CartSlice = createSlice({
     });
 
     // Fetch cart
-    builder.addCase(fetchCart.pending, (state) => {
+    builder.addCase(fetchCart.pending, state => {
       state.loading = true;
       state.error = null;
     });
     builder.addCase(fetchCart.fulfilled, (state, action) => {
       state.loading = false;
       console.log('Fetch Cart Response:', action.payload);
-      
+
       state.Carts = action.payload;
     });
     builder.addCase(fetchCart.rejected, (state, action) => {
@@ -139,17 +158,16 @@ const CartSlice = createSlice({
     });
 
     // Update cart
-    builder.addCase(updateAddTOCart.pending, (state) => {
+    builder.addCase(updateAddTOCart.pending, state => {
       state.loading = true;
       state.error = null;
     });
     builder.addCase(updateAddTOCart.fulfilled, (state, action) => {
       state.loading = false;
       console.log('Update Cart Response:', action.payload);
-      if (action.payload.msg==="Cart updated") {
-        state.Carts = action.payload.cart;  
+      if (action.payload.msg === 'Cart updated') {
+        state.Carts = action.payload.cart;
       }
-      
     });
     builder.addCase(updateAddTOCart.rejected, (state, action) => {
       state.loading = false;
@@ -157,17 +175,16 @@ const CartSlice = createSlice({
     });
 
     // Remove from cart
-    builder.addCase(removeFromCart.pending, (state) => {
+    builder.addCase(removeFromCart.pending, state => {
       state.loading = true;
       state.error = null;
     });
     builder.addCase(removeFromCart.fulfilled, (state, action) => {
       state.loading = false;
       console.log('Remove from Cart Response:', action.payload);
-      if (action.payload.msg==="Product removed from cart") {
-        state.Carts = action.payload.cart;        
+      if (action.payload.msg === 'Product removed from cart') {
+        state.Carts = action.payload.cart; // ✅ replace with updated cart
       }
-
     });
     builder.addCase(removeFromCart.rejected, (state, action) => {
       state.loading = false;

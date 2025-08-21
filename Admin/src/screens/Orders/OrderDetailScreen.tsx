@@ -95,7 +95,7 @@ const OrderDetailScreen = () => {
         </View>
       </View>
       <Text className="text-lg font-bold text-textPrimary">
-        ₹{item.Total ? item.Total : item?.product?.price * item?.quantity}
+        Total : ₹{item.Total ? item.Total : item?.product?.price * item?.quantity}
       </Text>
     </Animated.View>
   );
@@ -263,22 +263,19 @@ const OrderDetailScreen = () => {
                 : '';
 
             return (
-              <View
-                key={index || step.date}
-                className="flex-row items-start mb-6 relative"
-              >
+              <View key={index || step.date} className="flex-row items-start relative">
                 {/* Step Indicator */}
                 <View className="items-center mr-4">
                   <View
                     className={`w-5 h-5 rounded-full ${circleColor} border-2 border-white`}
                   />
                   {index < arr.length - 1 && (
-                    <View className={`w-0.5 h-10 ${lineColor}`} />
+                    <View className={`w-0.5 flex-1 ${lineColor}`} />
                   )}
                 </View>
 
                 {/* Step Content */}
-                <View className="flex-1">
+                <View className="flex-1 pb-6">
                   <Text
                     className={`text-base font-semibold ${isCompleted || isActive ? 'text-gray-800' : 'text-gray-400'}`}
                   >
@@ -302,7 +299,7 @@ const OrderDetailScreen = () => {
 
           {Array.isArray(Order?.ReceivedItems) &&
           Order.ReceivedItems.length > 0 ? (
-            Order.ReceivedItems.map(receivedItem => {
+            Order.ReceivedItems.map((receivedItem,indexVal) => {
               const product = Order.ProductData.find(
                 p => p.product._id === receivedItem.productId,
               );
@@ -310,7 +307,7 @@ const OrderDetailScreen = () => {
 
               return (
                 <View
-                  key={product.product._id}
+                  key={indexVal}
                   className="flex-row items-center justify-between mb-3 p-4 bg-white rounded-2xl shadow-sm border border-gray-100"
                 >
                   <View className="flex-row items-center">
@@ -329,6 +326,9 @@ const OrderDetailScreen = () => {
                         {product.product.unit}
                       </Text>
                       <Text className="mt-1 text-gray-600">
+                        Ordered: {product.quantity} Qty
+                      </Text>
+                      <Text className="mt-1 text-gray-600">
                         Received: {Number(receivedItem?.receivedQty)} Qty
                       </Text>
                       {product?.quantity !== receivedItem?.receivedQty && (
@@ -345,9 +345,11 @@ const OrderDetailScreen = () => {
                     </View>
                   </View>
                   <Text className="text-lg font-bold text-textPrimary">
-                    ₹{product.product.price * Number(receivedItem?.receivedQty)}
+                    Total : ₹{product.product.price * Number(receivedItem?.receivedQty)}
                   </Text>
+                  
                 </View>
+                
               );
             })
           ) : (
@@ -386,33 +388,32 @@ const OrderDetailScreen = () => {
           </View>
         </View>
       </ScrollView>
-      {Order.OrderStatus === 'Pending' &&(
-              <View className="absolute bottom-4 left-0 right-0 px-4 py-5 bg-white border-t border-gray-200 z-30 shadow-xl rounded-t-2xl">
-        <View className="flex-row justify-between space-x-4">
-          {/* Confirm Received Button */}
-          <TouchableOpacity
-            onPress={handleConfirmOrder}
-            className="flex-1 flex-row items-center justify-center bg-success py-4 mx-1 rounded-full shadow-md"
-          >
-            <MaterialIcons name="check-circle" size={20} color="#fff" />
-            <Text className="ml-2 text-white font-semibold text-base">
-              Confirm Order
-            </Text>
-          </TouchableOpacity>
+      {Order.OrderStatus === 'Pending' && (
+        <View className="absolute bottom-4 left-0 right-0 px-4 py-5 bg-white border-t border-gray-200 z-30 shadow-xl rounded-t-2xl">
+          <View className="flex-row justify-between space-x-4">
+            {/* Confirm Received Button */}
+            <TouchableOpacity
+              onPress={handleConfirmOrder}
+              className="flex-1 flex-row items-center justify-center bg-success py-4 mx-1 rounded-full shadow-md"
+            >
+              <MaterialIcons name="check-circle" size={20} color="#fff" />
+              <Text className="ml-2 text-white font-semibold text-base">
+                Confirm Order
+              </Text>
+            </TouchableOpacity>
 
-          {/* Cancel Order Button */}
-          <TouchableOpacity
-            onPress={handleCancelOrder}
-            className="flex-1 flex-row items-center justify-center bg-red-500 py-4 mx-1 rounded-full shadow-md"
-          >
-            <MaterialIcons name="cancel" size={20} color="#fff" />
-            <Text className="ml-2 text-white font-semibold text-base">
-              Cancel Order
-            </Text>
-          </TouchableOpacity>
+            {/* Cancel Order Button */}
+            <TouchableOpacity
+              onPress={handleCancelOrder}
+              className="flex-1 flex-row items-center justify-center bg-red-500 py-4 mx-1 rounded-full shadow-md"
+            >
+              <MaterialIcons name="cancel" size={20} color="#fff" />
+              <Text className="ml-2 text-white font-semibold text-base">
+                Cancel Order
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-
       )}
     </View>
   );

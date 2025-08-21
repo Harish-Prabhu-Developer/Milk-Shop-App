@@ -10,9 +10,8 @@ import {
 } from 'react-native';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Header from '../../components/Header';
 import { AppDispatch, RootState } from '../../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,7 +20,11 @@ import { fetchOrder } from '../../redux/slices/orderSlice';
 import Tabs from '../../components/Order/Tab/Tabs';
 import OrderCard from '../../components/Order/OrderCard';
 import { Modal } from 'react-native';
-import { formatDate, GetDay, GetTime } from '../../utils/CustomFunctions/DateFunctions';
+import {
+  formatDate,
+  GetDay,
+  GetTime,
+} from '../../utils/CustomFunctions/DateFunctions';
 
 const OrderScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -29,7 +32,6 @@ const OrderScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
   // filter state
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState<string | null>(null);
@@ -63,33 +65,36 @@ const OrderScreen = () => {
   const filteredOrders = useMemo(() => {
     let data = [...OrderData];
 
-// search filter
-if (searchQuery) {
-  const query = searchQuery.toLowerCase();
+    // search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
 
-  data = data.filter(order =>
-    // Order-level fields
-    formatDate(order.OrderDate).toLowerCase().includes(query) ||
-    GetTime(order.OrderDate).toLowerCase().includes(query) ||
-    GetDay(order.OrderDate).toLowerCase().includes(query) ||
-    order.Branch?.branchName?.toLowerCase().includes(query) ||
-    order.Branch?.email?.toLowerCase().includes(query) ||
-    order.Branch?.phone?.toLowerCase().includes(query) ||
-    order.TotalAmount?.toString().toLowerCase().includes(query) ||
-
-    // Product-level fields (check any product inside the order)
-    order.ProductData?.some(product =>
-      product.product?.category?.toLowerCase().includes(query) ||
-      product.product?.name?.toLowerCase().includes(query) ||
-      product.product?.price?.toString().toLowerCase().includes(query) ||
-      product.product?.unit?.toLowerCase().includes(query) ||
-      product.product?.nutrition?.toLowerCase().includes(query) ||
-      product.product?.description?.toLowerCase().includes(query) ||
-      product.quantity?.toString().toLowerCase().includes(query)
-    )
-  );
-}
-
+      data = data.filter(
+        order =>
+          // Order-level fields
+          formatDate(order.OrderDate).toLowerCase().includes(query) ||
+          GetTime(order.OrderDate).toLowerCase().includes(query) ||
+          GetDay(order.OrderDate).toLowerCase().includes(query) ||
+          order.Branch?.branchName?.toLowerCase().includes(query) ||
+          order.Branch?.email?.toLowerCase().includes(query) ||
+          order.Branch?.phone?.toLowerCase().includes(query) ||
+          order.TotalAmount?.toString().toLowerCase().includes(query) ||
+          // Product-level fields (check any product inside the order)
+          order.ProductData?.some(
+            product =>
+              product.product?.category?.toLowerCase().includes(query) ||
+              product.product?.name?.toLowerCase().includes(query) ||
+              product.product?.price
+                ?.toString()
+                .toLowerCase()
+                .includes(query) ||
+              product.product?.unit?.toLowerCase().includes(query) ||
+              product.product?.nutrition?.toLowerCase().includes(query) ||
+              product.product?.description?.toLowerCase().includes(query) ||
+              product.quantity?.toString().toLowerCase().includes(query),
+          ),
+      );
+    }
 
     // status filter
     if (selectedStatus) {
@@ -118,10 +123,6 @@ if (searchQuery) {
           <View className="flex-1 justify-center items-center">
             <Text className="text-gray-500">Loading...</Text>
           </View>
-        ) : OrdersType.length <= 0 ? (
-          <View className="justify-center items-center">
-            <Text className="text-gray-500">{EmptyMSG}</Text>
-          </View>
         ) : (
           <FlatList
             data={OrdersType}
@@ -130,6 +131,11 @@ if (searchQuery) {
             contentContainerStyle={{ paddingBottom: 20 }}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            ListEmptyComponent={
+              <View className="flex-1 justify-center items-center">
+                <Text className="text-gray-500">{EmptyMSG}</Text>
+              </View>
             }
           />
         )}
@@ -161,10 +167,14 @@ if (searchQuery) {
         tabs={[
           'All',
           'Pending Orders',
+          'Partially Delivered',
           'In Progress Orders',
           'Completed Orders',
           'Cancelled Orders',
+
         ]}
+
+       
       >
         {/* All */}
         <View className="bg-gray-50 p-4">
@@ -175,6 +185,13 @@ if (searchQuery) {
           {renderFlatList(
             filteredOrders.filter(order => order.OrderStatus === 'Pending'),
             'No Pending orders available',
+          )}
+        </View>
+        {/* partially delivered orders */}
+        <View className="bg-gray-50 p-4">
+          {renderFlatList(
+            filteredOrders.filter(order => order.ReceivedStatus === 'Partial'),
+            'No Received Partial orders available',
           )}
         </View>
         {/* in progress orders */}

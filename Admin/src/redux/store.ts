@@ -10,7 +10,7 @@ const store=configureStore({
         place:placeReducer,
         user:userReducer,
         product:productReducer,
-        order:orderReducer, 
+        order:orderReducer,
 
     },
 

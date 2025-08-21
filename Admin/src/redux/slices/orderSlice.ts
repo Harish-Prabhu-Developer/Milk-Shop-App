@@ -169,6 +169,7 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrder.fulfilled, (state, action) => {
         state.loading = false;
+        console.log("Orders : ",action.payload);
         state.orders = action.payload || [];
       })
       .addCase(fetchOrder.rejected, (state, action) => {

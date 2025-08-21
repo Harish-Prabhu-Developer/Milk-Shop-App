@@ -72,11 +72,11 @@ const CartScreen = () => {
       setIsAlertVisible(true);    // Show alert
     };
 
-    const handleUpdatedCart=async(Id:string,count:number)=>{
+    const handleUpdatedCart=(Id:string,count:number)=>{
       console.log("Updated Cart",Id,count);
       
-      const updatedCartItem:AddToCart =  await {productId:Id, quantity:count}
-      await dispatch(updateAddTOCart(updatedCartItem));
+      const updatedCartItem:AddToCart =   {productId:Id, quantity:count}
+       dispatch(updateAddTOCart(updatedCartItem));
     };
 
 
@@ -194,7 +194,7 @@ const handleCheckout = async () => {
                 
                 <View className=''>
                   <Text className="text-lg font-bold text-zinc-800">Total Price</Text>
-                  <Text className="text-xl font-extrabold text-primary">₹{cartData.totalAmount}</Text>
+                  <Text className="text-xl font-extrabold text-primary">₹{cartData.items.reduce((total, item) => total + item.product.price * item.quantity, 0)}</Text>
                 </View>
                 <TouchableOpacity
                   onPress={handleCheckout}

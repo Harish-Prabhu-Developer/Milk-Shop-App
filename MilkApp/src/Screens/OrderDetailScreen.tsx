@@ -1,6 +1,13 @@
 // OrderDetailScreen.tsx
 import React, { useState } from 'react';
-import {View,Text,ScrollView,TouchableOpacity,Image,Alert} from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -188,9 +195,7 @@ const OrderDetailScreen = () => {
 
     const res = await dispatch(updateOrderData(updateReceivedItems));
     console.log('res : ', res.payload.order);
-    
 
-    
     if (res.payload.msg === 'Order updated') {
       setModalVisible(false);
       Alert.alert(
@@ -388,22 +393,19 @@ const OrderDetailScreen = () => {
                 : '';
 
             return (
-              <View
-                key={index || step.date}
-                className="flex-row items-start mb-6 relative"
-              >
+              <View key={index} className="flex-row items-start relative">
                 {/* Step Indicator */}
                 <View className="items-center mr-4">
                   <View
                     className={`w-5 h-5 rounded-full ${circleColor} border-2 border-white`}
                   />
                   {index < arr.length - 1 && (
-                    <View className={`w-0.5 h-10 ${lineColor}`} />
+                    <View className={`w-0.5 flex-1 ${lineColor}`} />
                   )}
                 </View>
 
                 {/* Step Content */}
-                <View className="flex-1">
+                <View className="flex-1 pb-6">
                   <Text
                     className={`text-base font-semibold ${isCompleted || isActive ? 'text-gray-800' : 'text-gray-400'}`}
                   >
@@ -453,6 +455,9 @@ const OrderDetailScreen = () => {
                       </Text>
                       <Text className="text-sm text-gray-500">
                         {product.product.unit}
+                      </Text>
+                      <Text className="mt-1 text-gray-600">
+                        Ordered: {product.quantity} Qty
                       </Text>
                       <Text className="mt-1 text-gray-600">
                         Received: {Number(receivedItem?.receivedQty)} Qty

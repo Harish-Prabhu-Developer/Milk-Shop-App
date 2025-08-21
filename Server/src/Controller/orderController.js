@@ -120,7 +120,7 @@ export const updateOrder = async (req, res) => {
     if (Array.isArray(ReceivedItems)) {
       ReceivedItems.forEach((received) => {
         const existing = order.ReceivedItems.find(
-          (item) => item.id === received.id
+          (item) => item.productId === received.productId
         );
         console.log("existing : ", existing);
 
@@ -128,7 +128,7 @@ export const updateOrder = async (req, res) => {
           existing.receivedQty = received.receivedQty;
         } else {
           order.ReceivedItems.push({
-            id: received.id,
+            productId: received.productId,
             receivedQty: received.receivedQty,
           });
         }
@@ -136,27 +136,34 @@ export const updateOrder = async (req, res) => {
     }
 
     // Optional: auto-update ReceivedStatus if all items are received
-    if (ReceivedItems && order.ProductData.length > 0) {
-      const totalOrderedQty = order.ProductData.reduce(
-        (sum, p) => sum + (p.quantity || 0),
-        0
-      );
-      const totalReceivedQty = ReceivedItems.reduce(
-        (sum, r) => sum + (r.receivedQty || 0),
-        0
-      );
+    // ✅ Auto-update ReceivedStatus & OrderStatus
+if (Array.isArray(ReceivedItems) && order.ProductData.length > 0) {
+  const totalOrderedQty = order.ProductData.reduce(
+    (sum, p) => sum + (p.quantity || 0),
+    0
+  );
+  const totalReceivedQty = ReceivedItems.reduce(
+    (sum, r) => sum + (r.receivedQty || 0),
+    0
+  );
 
-      if (totalReceivedQty === totalOrderedQty) {
-        order.ReceivedStatus = "Confirmed";
-        order.OrderStatus = "Delivered";
-      } else if (totalReceivedQty > 0) {
-        order.ReceivedStatus = "Partial";
-        order.OrderStatus = "Delivered";
-      } else {
-        order.ReceivedStatus = "Pending";
-        order.OrderStatus = "Delivered";
-      }
-    }
+  if (totalReceivedQty === 0) {
+    // Nothing received yet
+    order.ReceivedStatus = "Pending";
+    order.OrderStatus = "Processing"; // ⬅️ stays in-progress, not delivered
+  } else if (totalReceivedQty !== totalOrderedQty) {
+    // Some but not all items received
+    order.ReceivedStatus = "Partial";
+    order.OrderStatus = "Delivered"; // still ongoing
+  } else if (totalReceivedQty === totalOrderedQty) {
+    // All items received
+    order.ReceivedStatus = "Confirmed";
+    order.OrderStatus = "Delivered";
+  }else{
+    order.ReceivedStatus = "Pending";
+    order.OrderStatus = "Processing";
+  }
+}
 
     // If provided in request, manually override status/date
     if (ReceivedStatus) order.ReceivedStatus = ReceivedStatus;

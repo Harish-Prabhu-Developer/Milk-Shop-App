@@ -1,7 +1,7 @@
 import { Product } from "./Product";
 
 
-type OrderStatus = 'Pending' | 'Processing' | 'Delivered' | 'Cancelled';
+export type OrderStatus = 'Pending' | 'Processing' | 'Delivered' | 'Cancelled';
 type PaymentStatus = 'Pending' | 'Completed' | 'Failed';
 // type DeliveryStatus = 'Pending' | 'Out for Delivery' | 'Delivered' | 'Returned';
 type ReceivedStatus = 'Pending' | 'Confirmed' | 'Partial' | 'Issue Reported';

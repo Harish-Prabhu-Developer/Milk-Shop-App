@@ -18,7 +18,7 @@ const OrderSchema =new mongoose.Schema({
     PaymentStatus: { type: String, enum: ["Pending", "Completed", "Failed"], default: "Pending" },
     ReceivedStatus: { type: String, enum: ["Pending", "Confirmed", "Partial", "Issue Reported"], default: "Pending" },
     ReceivedDate: { type: Date },
-    ReceivedItems: [{ id: String, receivedQty: Number }],
+    ReceivedItems: [{ productId: String, receivedQty: Number }],
     ConfirmOrderDate: { type: Date },
     CancelOrderDate: { type: Date },
 },

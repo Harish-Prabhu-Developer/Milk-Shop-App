@@ -1,26 +1,31 @@
 import { Text, TouchableOpacity, View } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface IncreaseButtonProps {
-  initialCount?: number; // Allow external count setter
-  OnCount: (count: number) => void; // Callback to expose count
+  initialCount?: number; 
+  OnCount: (count: number) => void; 
 }
 
 const IncreaseButton = ({ initialCount = 1, OnCount }: IncreaseButtonProps) => {
   const [count, setCount] = useState(initialCount);
+  const isMounted = useRef(false);
 
-  // Sync internal count when initialCount changes from parent
+  // Sync with parent when initialCount changes, but avoid triggering OnCount
   useEffect(() => {
     setCount(initialCount);
   }, [initialCount]);
 
-  // Notify parent whenever count changes
-  useEffect(() => {
-    OnCount(count);
-  }, [count, OnCount]);
+  const increase = () => {
+    const newCount = count + 1;
+    setCount(newCount);
+    OnCount(newCount); // ✅ only on user action
+  };
 
-  const increase = () => setCount((prev) => prev + 1);
-  const decrease = () => setCount((prev) => Math.max(1, prev - 1));
+  const decrease = () => {
+    const newCount = Math.max(1, count - 1);
+    setCount(newCount);
+    OnCount(newCount); // ✅ only on user action
+  };
 
   return (
     <View className="flex-row items-center justify-center border border-gray-200 px-4 py-1 rounded-xl gap-4">

@@ -93,8 +93,9 @@ export const updateCartItem = async (req, res) => {
         }
 
         const item = cart.items.find(
-            (i) => i.product.toString() === productId
+            (i) => i.product._id.toString() === productId
         );
+        console.log(item);
 
         if (!item) {
             return res.status(404).json({ msg: "Product not in cart" });
@@ -115,13 +116,13 @@ export const removeFromCart = async (req, res) => {
         const { productId } = req.params;
         const userId = req.user._id;
 
-        const cart = await CartModel.findOne({ user: userId });
+        const cart = await CartModel.findOne({ user: userId }).populate("items.product");
         if (!cart) {
             return res.status(404).json({ msg: "Cart not found" });
         }
 
         cart.items = cart.items.filter(
-            (item) => item.product.toString() !== productId
+            (item) => item.product._id.toString() !== productId
         );
 
         await cart.save();
@@ -137,7 +138,7 @@ export const clearCart = async (req, res) => {
     try {
         const userId = req.user._id;
 
-        const cart = await CartModel.findOne({ user: userId });
+        const cart = await CartModel.findOne({ user: userId }).populate("items.product");
         if (!cart) {
             return res.status(404).json({ message: "Cart not found" });
         }

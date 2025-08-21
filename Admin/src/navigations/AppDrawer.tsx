@@ -13,9 +13,9 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import CustomDrawerContent from './CustomDrawerContent';
 import PlaceScreen from '../screens/Place/PlaceScreen';
 
-type DrawerParamList = {
+export type DrawerParamList = {
   Dashboard: undefined;
-  OrderScreen: undefined;
+  OrderScreen: {Tabnumber?:number};
   ProfileScreen: undefined;
   ProductScreen: undefined;
   UserScreen: undefined;
