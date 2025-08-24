@@ -14,11 +14,19 @@ import AppDrawer from './navigations/AppDrawer';
 import ProductDetailScreen from './screens/Products/ProductDetailScreen';
 import { Order } from './@types/Order';
 import OrderDetailScreen from './screens/Orders/OrderDetailScreen';
+import SalesReport from './screens/Reports/SalesReport';
+import CustomerReport from './screens/Reports/CustomerReport';
+import ProductReport from './screens/Reports/ProductReport';
+import DeliveryReport from './screens/Reports/DeliveryReport';
 
 type RootStackParamList = {
   LoginScreen: undefined;
   RegisterScreen: undefined;
   Drawer: undefined;
+  SalesReport:undefined;
+  DeliveryReport:undefined;
+  ProductReport:undefined;
+  CustomerReport:undefined;
   ProductDetailScreen: { Product: Product };
   OrderDetailScreen: { Order: Order };
 };
@@ -79,6 +87,14 @@ const App = () => {
               name="OrderDetailScreen"
               component={OrderDetailScreen}
             />
+            {/* SalesReport */}
+            <Stack.Screen name="SalesReport" component={SalesReport} />
+            {/* CustomerReport */}
+            <Stack.Screen name="CustomerReport" component={CustomerReport} />
+            {/* ProductReport */}
+            <Stack.Screen name="ProductReport" component={ProductReport} />
+            {/* DeliveryReport */}
+            <Stack.Screen name="DeliveryReport" component={DeliveryReport} />
           </Stack.Navigator>
         )}
       </NavigationContainer>
