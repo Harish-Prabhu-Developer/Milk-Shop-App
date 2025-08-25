@@ -6,17 +6,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
-  TextInput,
 } from 'react-native';
 import * as XLSX from 'xlsx';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+
 import { formatDate } from '../../utils/CustomFunctions/DateFunctions';
 import SalesFilterForm from '../../components/Report/Sales/SalesFilterForm';
+import ReportHeader from '../../components/Report/Header/ReportHeader';
+import ExportButton from '../../components/Report/ExportButton';
 
 const SalesReport = () => {
   // Example Data
@@ -88,10 +87,9 @@ const SalesReport = () => {
     literMax: '',
     totalMin: '',
     totalMax: '',
-    paidStatus: '',
+    paidStatus: 'All',
   });
 
-  const navigation = useNavigation<StackNavigationProp<any>>();
 
   // ✅ Generic updater
   const updateFilter = (key: string, value: string) => {
@@ -274,25 +272,7 @@ const SalesReport = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-primary pt-12 pb-8 px-5 shadow-md rounded-b-3xl">
-        <View className="flex-row justify-between items-center">
-          <View className="flex-row items-center">
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              className="mr-3"
-            >
-              <MaterialIcons name="arrow-back" size={28} color="#fff" />
-            </TouchableOpacity>
-            <Text className="text-2xl text-white font-bold">Sales Report</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => setFilterModal(true)}
-            className="bg-white/20 px-4 py-2 rounded-lg"
-          >
-            <Text className="text-white font-semibold">Filter</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <ReportHeader title="Sales Report" onFilterPress={() => setFilterModal(true)} />
 
       {/* Report List */}
       <ScrollView className="p-4">
@@ -325,33 +305,14 @@ const SalesReport = () => {
       </ScrollView>
 
       {/* Export Buttons */}
-      <View className="flex-row justify-between px-4 py-5 bg-white border-t border-gray-200">
-        <TouchableOpacity
-          onPress={() => exportCSV(salesDataReport)}
-          className="flex-1 flex-row items-center justify-center bg-blue-500 mx-1 py-3 rounded-xl shadow-md"
-        >
-          <MaterialIcons name="file-download" size={20} color="#fff" />
-          <Text className="ml-2 text-white font-semibold">CSV</Text>
-        </TouchableOpacity>
+      <ExportButton
+        data={filteredData}
+        onExportCSV={exportCSV}
+        onExportExcel={exportExcel}
+        onExportPDF={exportPDF}
+      />
 
-        <TouchableOpacity
-          onPress={() => exportExcel(salesDataReport)}
-          className="flex-1 flex-row items-center justify-center bg-green-500 mx-1 py-3 rounded-xl shadow-md"
-        >
-          <MaterialIcons name="table-chart" size={20} color="#fff" />
-          <Text className="ml-2 text-white font-semibold">Excel</Text>
-        </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => exportPDF(salesDataReport)}
-          className="flex-1 flex-row items-center justify-center bg-red-500 mx-1 py-3 rounded-xl shadow-md"
-        >
-          <MaterialIcons name="picture-as-pdf" size={20} color="#fff" />
-          <Text className="ml-2 text-white font-semibold">PDF</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Filter Modal */}
       {/* Filter Modal */}
       <Modal visible={filterModal} animationType="slide" transparent={true}>
         <View className="flex-1 bg-black/50 justify-end">

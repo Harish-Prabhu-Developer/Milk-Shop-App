@@ -35,7 +35,7 @@ const UserForm = ({ initialData, onSubmit, onCancel }: UserFormProps) => {
       type: 'NKC Local',
     },
   );
-  const [showPassword, setShowPassword] = useState(false);
+
   const PlaceDetails: Place[] = useSelector(
     (state: RootState) => state.place.places,
   );

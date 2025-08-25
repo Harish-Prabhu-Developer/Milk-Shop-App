@@ -1,6 +1,7 @@
 // ProductReport.tsx
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator, Alert } from "react-native";
+import ReportHeader from "../../components/Report/Header/ReportHeader";
 
 export default function ProductReport() {
   const [products, setProducts] = useState<any[]>([]);
@@ -48,32 +49,9 @@ export default function ProductReport() {
   if (loading) return <ActivityIndicator size="large" />;
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 12 }}>
-        Product Report
-      </Text>
-      <ScrollView horizontal>
-        <View>
-          <View style={{ flexDirection: "row", backgroundColor: "#eee", padding: 8 }}>
-            <Text style={{ width: 150, fontWeight: "bold" }}>Name</Text>
-            <Text style={{ width: 100, fontWeight: "bold" }}>Price</Text>
-            <Text style={{ width: 80, fontWeight: "bold" }}>Unit</Text>
-            <Text style={{ width: 200, fontWeight: "bold" }}>Description</Text>
-            <Text style={{ width: 150, fontWeight: "bold" }}>Category</Text>
-            <Text style={{ width: 100, fontWeight: "bold" }}>Active</Text>
-          </View>
-          {products.map((p, i) => (
-            <View key={i} style={{ flexDirection: "row", padding: 8, borderBottomWidth: 1 }}>
-              <Text style={{ width: 150 }}>{p.name}</Text>
-              <Text style={{ width: 100 }}>{p.price}</Text>
-              <Text style={{ width: 80 }}>{p.unit}</Text>
-              <Text style={{ width: 200 }}>{p.description}</Text>
-              <Text style={{ width: 150 }}>{p.category}</Text>
-              <Text style={{ width: 100 }}>{p.isActive ? "Yes" : "No"}</Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+    <View className="flex-1 bg-gray-50">
+      {/* Header */}
+      <ReportHeader title="Product Report" onFilterPress={() => {}} />
     </View>
   );
 }

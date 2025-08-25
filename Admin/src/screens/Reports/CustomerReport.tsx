@@ -6,18 +6,25 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  Modal,
 } from "react-native";
-import RNHTMLtoPDF from "react-native-html-to-pdf";
-import Share from "react-native-share";
+import ReportHeader from "../../components/Report/Header/ReportHeader";
+import ExportButton from "../../components/Report/ExportButton";
+
 import * as XLSX from "xlsx";
 import RNFS from "react-native-fs";
+import RNHTMLtoPDF from "react-native-html-to-pdf";
+import Share from "react-native-share";
+import CustomerFilterForm from "../../components/Report/Customers/CustomerFilterForm";
 
 export default function CustomerReport() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [filterModal, setFilterModal] = useState(false);
 
-  const data=[
+  // Demo data (replace with API later)
+  const data = [
     {
       id: "1",
       branchName: "Chennai Main Branch",
@@ -43,25 +50,35 @@ export default function CustomerReport() {
       type: "AKC OUT",
     },
   ];
+
   useEffect(() => {
     fetchCustomers();
   }, []);
 
   const fetchCustomers = async () => {
     try {
-      // replace with your API endpoint
-    //   const res = await fetch("http://localhost:5000/api/branches");
-    //   const data = await res.json();
       setCustomers(data);
+      setFilteredData(data);
     } catch (err) {
-    //   Alert.alert("Error", "Failed to fetch customers");
+      console.log("Error fetching customers:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const exportToExcel = async () => {
-    const ws = XLSX.utils.json_to_sheet(customers);
+  // 📌 Export functions
+  const exportCSV = async (rows: any[]) => {
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Customers");
+    const wbout = XLSX.write(wb, { type: "base64", bookType: "csv" });
+    const filePath = `${RNFS.DownloadDirectoryPath}/customers.csv`;
+    await RNFS.writeFile(filePath, wbout, "base64");
+    await Share.open({ url: `file://${filePath}` });
+  };
+
+  const exportExcel = async (rows: any[]) => {
+    const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Customers");
     const wbout = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
@@ -70,12 +87,14 @@ export default function CustomerReport() {
     await Share.open({ url: `file://${filePath}` });
   };
 
-  const exportToPDF = async () => {
+  const exportPDF = async (rows: any[]) => {
     const html = `
       <h1>Customer Report</h1>
       <table border="1" style="width:100%;border-collapse:collapse;">
-        <tr><th>Branch</th><th>Email</th><th>Phone</th><th>Role</th></tr>
-        ${customers
+        <tr>
+          <th>Branch</th><th>Email</th><th>Phone</th><th>Role</th>
+        </tr>
+        ${rows
           .map(
             (c) =>
               `<tr><td>${c.branchName}</td><td>${c.email}</td><td>${c.phone}</td><td>${c.role}</td></tr>`
@@ -93,41 +112,49 @@ export default function CustomerReport() {
   if (loading) return <ActivityIndicator size="large" />;
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 12 }}>
-        Customer Report
-      </Text>
-      <ScrollView horizontal>
-        <View>
-          <View style={{ flexDirection: "row", backgroundColor: "#eee", padding: 8 }}>
-            <Text style={{ width: 150, fontWeight: "bold" }}>Branch</Text>
-            <Text style={{ width: 200, fontWeight: "bold" }}>Email</Text>
-            <Text style={{ width: 150, fontWeight: "bold" }}>Phone</Text>
-            <Text style={{ width: 100, fontWeight: "bold" }}>Role</Text>
+    <View className="flex-1 bg-gray-50">
+      {/* Header */}
+      <ReportHeader title="Customer Report" onFilterPress={() => setFilterModal(true)} />
+
+      {/* Customer List */}
+      <ScrollView className="p-4">
+        {filteredData.map((c) => (
+          <View
+            key={c.id}
+            className="bg-white rounded-2xl shadow-md p-4 mb-4 border border-gray-200"
+          >
+            <Text className="text-lg font-bold text-gray-800">{c.branchName}</Text>
+            <Text className="text-gray-600">📍 {c.location}</Text>
+            <Text className="text-gray-600">📧 {c.email}</Text>
+            <Text className="text-gray-600">📞 {c.phone}</Text>
+            <Text className="text-gray-600">👤 {c.contactPerson}</Text>
+            <Text className="text-gray-500 text-sm">
+              Registered: {c.registeredDate}
+            </Text>
+            <Text className="text-gray-500 text-sm">Role: {c.role}</Text>
+            <Text className="text-gray-500 text-sm">Type: {c.type}</Text>
           </View>
-          {customers.map((c, i) => (
-            <View key={i} style={{ flexDirection: "row", padding: 8, borderBottomWidth: 1 }}>
-              <Text style={{ width: 150 }}>{c.branchName}</Text>
-              <Text style={{ width: 200 }}>{c.email}</Text>
-              <Text style={{ width: 150 }}>{c.phone}</Text>
-              <Text style={{ width: 100 }}>{c.role}</Text>
-            </View>
-          ))}
-        </View>
+        ))}
       </ScrollView>
 
-      <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 20 }}>
-        <TouchableOpacity onPress={exportToExcel}>
-          <Text style={{ padding: 10, backgroundColor: "green", color: "#fff", borderRadius: 8 }}>
-            Export Excel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={exportToPDF}>
-          <Text style={{ padding: 10, backgroundColor: "red", color: "#fff", borderRadius: 8 }}>
-            Export PDF
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Export Buttons */}
+      <ExportButton
+        data={filteredData}
+        onExportCSV={exportCSV}
+        onExportExcel={exportExcel}
+        onExportPDF={exportPDF}
+      />
+
+      {/* Filter Modal */}
+      <Modal visible={filterModal} animationType="slide" transparent={true}>
+        <View className="flex-1 bg-black/50 justify-end">
+          <CustomerFilterForm
+            customers={customers}
+            setFilteredData={setFilteredData}
+            closeModal={() => setFilterModal(false)}
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
