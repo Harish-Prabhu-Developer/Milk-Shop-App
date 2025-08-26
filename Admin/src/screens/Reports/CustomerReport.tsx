@@ -4,7 +4,6 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Modal,
 } from "react-native";
@@ -26,7 +25,7 @@ export default function CustomerReport() {
   // Demo data (replace with API later)
   const data = [
     {
-      id: "1",
+      _id: "1",
       branchName: "Chennai Main Branch",
       email: "chennai@milk.com",
       phone: "9876543210",
@@ -38,7 +37,7 @@ export default function CustomerReport() {
       type: "NKC Local",
     },
     {
-      id: "2",
+      _id: "2",
       branchName: "Coimbatore Branch",
       email: "coimbatore@milk.com",
       phone: "9123456780",
@@ -118,23 +117,54 @@ export default function CustomerReport() {
 
       {/* Customer List */}
       <ScrollView className="p-4">
-        {filteredData.map((c) => (
-          <View
-            key={c.id}
-            className="bg-white rounded-2xl shadow-md p-4 mb-4 border border-gray-200"
-          >
-            <Text className="text-lg font-bold text-gray-800">{c.branchName}</Text>
-            <Text className="text-gray-600">📍 {c.location}</Text>
-            <Text className="text-gray-600">📧 {c.email}</Text>
-            <Text className="text-gray-600">📞 {c.phone}</Text>
-            <Text className="text-gray-600">👤 {c.contactPerson}</Text>
+      {filteredData.map((c) => (
+        <View
+          key={c._id}
+          className="bg-white rounded-3xl shadow-lg p-5 mb-5 border border-gray-100"
+        >
+          {/* Branch Name + Type */}
+          <View className="flex-row justify-between items-center mb-3">
+            <Text className="text-xl font-semibold text-gray-900">
+              {c.branchName}
+            </Text>
+            <View className="bg-blue-100 px-3 py-1 rounded-full">
+              <Text className="text-blue-700 text-xs font-medium">{c.type}</Text>
+            </View>
+          </View>
+
+          {/* Location */}
+          <View className="flex-row items-center mb-2">
+            <Text className="text-lg mr-2">📍</Text>
+            <Text className="text-gray-700 text-base">{c.location}</Text>
+          </View>
+
+          {/* Email */}
+          <View className="flex-row items-center mb-2">
+            <Text className="text-lg mr-2">📧</Text>
+            <Text className="text-gray-700 text-base">{c.email}</Text>
+          </View>
+
+          {/* Phone */}
+          <View className="flex-row items-center mb-2">
+            <Text className="text-lg mr-2">📞</Text>
+            <Text className="text-gray-700 text-base">{c.phone}</Text>
+          </View>
+
+          {/* Contact Person */}
+          <View className="flex-row items-center mb-1">
+            <Text className="text-lg mr-2">👤</Text>
+            <Text className="text-gray-700 text-base">{c.contactPerson}</Text>
+          </View>
+
+          {/* Registered Date (extra detail) */}
+          <View className="mt-3 border-t border-gray-100 pt-2">
             <Text className="text-gray-500 text-sm">
               Registered: {c.registeredDate}
             </Text>
-            <Text className="text-gray-500 text-sm">Role: {c.role}</Text>
-            <Text className="text-gray-500 text-sm">Type: {c.type}</Text>
           </View>
-        ))}
+        </View>
+      ))}
+
       </ScrollView>
 
       {/* Export Buttons */}
