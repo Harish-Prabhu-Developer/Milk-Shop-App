@@ -6,6 +6,7 @@ import OrderRoute from "./orderRoutes.js";
 import branchRouter from "./branchRoutes.js";
 import placeRouter from "./placeRoutes.js";
 import AnalyticsRoute from "./analyticsRoutes.js";
+import ReportRoute from "./reportRoutes.js";
 
 const router = express.Router();
 
@@ -16,4 +17,5 @@ router.use("/order",OrderRoute);
 router.use("/branch",branchRouter);
 router.use("/place",placeRouter);
 router.use("/analytics",AnalyticsRoute);
+router.use("/reports", ReportRoute);
 export default router;
