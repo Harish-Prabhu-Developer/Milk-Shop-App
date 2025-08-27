@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import ReportHeader from "../../components/Report/Header/ReportHeader";
 import ExportButton from "../../components/Report/ExportButton";
-
+import  Icon  from "react-native-vector-icons/MaterialIcons";
 import * as XLSX from "xlsx";
 import RNFS from "react-native-fs";
 import RNHTMLtoPDF from "react-native-html-to-pdf";
@@ -118,52 +118,53 @@ export default function CustomerReport() {
       {/* Customer List */}
       <ScrollView className="p-4">
       {filteredData.map((c) => (
-        <View
-          key={c._id}
-          className="bg-white rounded-3xl shadow-lg p-5 mb-5 border border-gray-100"
-        >
-          {/* Branch Name + Type */}
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-xl font-semibold text-gray-900">
-              {c.branchName}
-            </Text>
-            <View className="bg-blue-100 px-3 py-1 rounded-full">
-              <Text className="text-blue-700 text-xs font-medium">{c.type}</Text>
-            </View>
-          </View>
+  <View
+    key={c._id}
+    className="bg-white rounded-3xl shadow-lg p-5 mb-5 border border-gray-200"
+  >
+    {/* Branch Name + Type */}
+    <View className="flex-row justify-between items-center mb-3">
+      <Text className="text-xl font-semibold text-gray-900">
+        {c.branchName}
+      </Text>
+      <View className="bg-blue-100 px-3 py-1 rounded-full">
+        <Text className="text-blue-700 text-xs font-medium">{c.type}</Text>
+      </View>
+    </View>
 
-          {/* Location */}
-          <View className="flex-row items-center mb-2">
-            <Text className="text-lg mr-2">📍</Text>
-            <Text className="text-gray-700 text-base">{c.location}</Text>
-          </View>
+    {/* Location */}
+    <View className="flex-row items-center mb-2">
+      <Icon name="location-on" size={18} color="#4b5563" style={{ marginRight: 6 }} />
+      <Text className="text-gray-700 text-base">{c.location}</Text>
+    </View>
 
-          {/* Email */}
-          <View className="flex-row items-center mb-2">
-            <Text className="text-lg mr-2">📧</Text>
-            <Text className="text-gray-700 text-base">{c.email}</Text>
-          </View>
+    {/* Email */}
+    <View className="flex-row items-center mb-2">
+      <Icon name="email" size={18} color="#4b5563" style={{ marginRight: 6 }} />
+      <Text className="text-gray-700 text-base">{c.email}</Text>
+    </View>
 
-          {/* Phone */}
-          <View className="flex-row items-center mb-2">
-            <Text className="text-lg mr-2">📞</Text>
-            <Text className="text-gray-700 text-base">{c.phone}</Text>
-          </View>
+    {/* Phone */}
+    <View className="flex-row items-center mb-2">
+      <Icon name="phone" size={18} color="#4b5563" style={{ marginRight: 6 }} />
+      <Text className="text-gray-700 text-base">{c.phone}</Text>
+    </View>
 
-          {/* Contact Person */}
-          <View className="flex-row items-center mb-1">
-            <Text className="text-lg mr-2">👤</Text>
-            <Text className="text-gray-700 text-base">{c.contactPerson}</Text>
-          </View>
+    {/* Contact Person */}
+    <View className="flex-row items-center mb-1">
+      <Icon name="person" size={18} color="#4b5563" style={{ marginRight: 6 }} />
+      <Text className="text-gray-700 text-base">{c.contactPerson}</Text>
+    </View>
 
-          {/* Registered Date (extra detail) */}
-          <View className="mt-3 border-t border-gray-100 pt-2">
-            <Text className="text-gray-500 text-sm">
-              Registered: {c.registeredDate}
-            </Text>
-          </View>
-        </View>
-      ))}
+    {/* Registered Date (extra detail) */}
+    <View className="mt-3 border-t border-gray-100 pt-2">
+      <Text className="text-gray-500 text-sm">
+        Registered: {c.registeredDate}
+      </Text>
+    </View>
+  </View>
+))}
+
 
       </ScrollView>
 
