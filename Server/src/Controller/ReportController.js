@@ -2,6 +2,7 @@
 import BranchModel from "../Model/BranchModel.js";
 import OrderModel from "../Model/OrderModel.js"; 
 import PlaceModel from "../Model/PlaceModel.js";
+import ProductModel from "../Model/ProductModel.js";
 /**
  * Generate Sales Report grouped by Branch and Date
  * @route GET /api/reports/sales
@@ -204,5 +205,82 @@ export const getDeliveryReport = async (req, res) => {
   } catch (error) {
     console.error("Error generating delivery report:", error);
     res.status(500).json({ message: "Failed to generate delivery report", error });
+  }
+};
+
+
+
+/**
+ * Generate Sales/Report Data
+ */
+export const getReportData = async (req, res) => {
+
+  try {
+    // 1️⃣ Total Branches
+    const totalBranches = await BranchModel.countDocuments({role:"user"});
+
+    // 2️⃣ Total Orders + Pending Amount
+    const orders = await OrderModel.find().populate("ProductData.product");
+    const totalOrders = orders.length;
+    const pendingAmount = orders
+      .filter((o) => o.PaymentStatus === "Pending")
+      .reduce((sum, o) => sum + (o.TotalAmount || 0), 0);
+
+    // 3️⃣ Total Sales (Completed Payments Only)
+    const totalSales = orders
+      .filter((o) => o.PaymentStatus === "Completed")
+      .reduce((sum, o) => sum + (o.TotalAmount || 0), 0);
+
+    // 4️⃣ Sales Trend (Group by Day of Week)
+    const salesTrendData = Array(7).fill(0); // Mon-Sun
+    orders.forEach((order) => {
+      if (order.PaymentStatus === "Completed") {
+        const day = new Date(order.OrderDate).getDay(); // 0=Sun .. 6=Sat
+        const index = (day + 6) % 7; // shift so Mon=0
+        salesTrendData[index] += order.TotalAmount;
+      }
+    });
+
+    const salesTrend = {
+      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      datasets: [{ data: salesTrendData }],
+    };
+
+    // 5️⃣ Product Data (Pie chart style)
+    const products = await ProductModel.find({ isActive: true });
+    let productCounts = {};
+    orders.forEach((order) => {
+      order.ProductData.forEach((item) => {
+        const productName = item.product?.name || "Unknown";
+        productCounts[productName] =
+          (productCounts[productName] || 0) + item.quantity;
+      });
+    });
+
+    const colors = ["#4CAF50", "#2196F3", "#FFC107", "#F44336", "#9C27B0"];
+    const productData = Object.entries(productCounts).map(([name, qty], i) => ({
+      name,
+      population: qty,
+      color: colors[i % colors.length],
+      legendFontColor: "#333",
+      legendFontSize: 12,
+    }));
+
+    // 6️⃣ Places Grouping
+    // const totalPlaces = await PlaceModel.countDocuments();
+
+    // Final Response
+    res.json({
+      totalSales,
+      orders: totalOrders,
+      Branch: totalBranches,
+      pending: pendingAmount,
+      salesTrend,
+      productData,
+      // places: totalPlaces,
+    });
+  } catch (error) {
+    console.error("Error generating report:", error);
+    res.status(500).json({ message: "Failed to generate report", error });
   }
 };

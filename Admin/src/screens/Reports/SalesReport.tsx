@@ -1,5 +1,5 @@
 // SalesReport.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,9 @@ import { formatDate } from '../../utils/CustomFunctions/DateFunctions';
 import SalesFilterForm from '../../components/Report/Sales/SalesFilterForm';
 import ReportHeader from '../../components/Report/Header/ReportHeader';
 import ExportButton from '../../components/Report/ExportButton';
+import { API_URL } from '@env';
+import axios from 'axios';
+import { SalesPDFTemplate } from '../../components/Report/PDF Templates/SalesReportPDF';
 
 const SalesReport = () => {
   // Example Data
@@ -74,6 +77,18 @@ const SalesReport = () => {
   const [filteredData, setFilteredData] = useState(salesDataReport);
   const [filterModal, setFilterModal] = useState(false);
 
+  useEffect(()=>{
+    fetchSalesData();
+  },[])
+  const fetchSalesData=async()=>{
+    try {
+      const response = await axios.get(`${API_URL}/milkapp/reports/sales`);
+      setFilteredData(response.data);
+    } catch (error) {
+      setFilteredData([]);
+      console.error("Error fetching sales data:", error);
+    }
+  };
   // ✅ Unified filters object
   const [filters, setFilters] = useState({
     branchName: '',
@@ -120,84 +135,70 @@ const SalesReport = () => {
     return rows;
   };
 
-  // ✅ Export CSV
-  const exportCSV = async (data: any[]) => {
+// ✅ Export CSV
+const exportCSV = async (data: any[]) => {
+  try {
     const rows = flattenSalesData(data);
-    const header =
-      'Branch,RouteType,Contact,Phone,Email,Location,RouteName,Date,Price,Total,Liter,Paid\n';
-    const csv = rows
-      .map(
-        r =>
-          `${r.branchName},${r.routeType},${r.contactPerson},${r.phone},${r.email},${r.location},${r.routeName},${r.date},${r.price},${r.total},${r.liter},${r.paid}`,
-      )
-      .join('\n');
-
-    const path = `${RNFS.DownloadDirectoryPath}/SalesReport.csv`;
-    await RNFS.writeFile(path, header + csv, 'utf8');
-    await Share.open({ url: 'file://' + path, type: 'text/csv' });
-  };
-
-  // ✅ Export Excel
-  const exportExcel = async (data: any[]) => {
-    const rows = flattenSalesData(data);
-    const ws = XLSX.utils.json_to_sheet(rows);
+    const cleanRows = rows.map(r => ({
+      ...r,
+      price: r.price.toFixed(2),
+      total: r.total.toFixed(2),
+      liter: r.liter.toFixed(2),
+    }));
+    const ws = XLSX.utils.json_to_sheet(cleanRows);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sales Report');
-    const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    XLSX.utils.book_append_sheet(wb, ws, "Sales");
+    const wbout = XLSX.write(wb, { type: "base64", bookType: "csv" });
 
-    const path = `${RNFS.DownloadDirectoryPath}/SalesReport.xlsx`;
-    await RNFS.writeFile(path, wbout, 'base64');
+    const path = `${RNFS.DownloadDirectoryPath}/sales-${formatDate(new Date().toISOString())}.csv`;
+
+    await RNFS.writeFile(path, wbout, "base64");
 
     await Share.open({
-      url: 'file://' + path,
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      url: `file://${path}`, // ✅ important for Android
+      type: "text/csv",
     });
-  };
 
-  // ✅ Export PDF
-  const exportPDF = async (data: any[]) => {
+  } catch (err) {
+    console.error("CSV Export error:", err);
+  }
+};
+
+// ✅ Export Excel
+const exportExcel = async (data: any[]) => {
+  try {
     const rows = flattenSalesData(data);
-    const tableRows = rows
-      .map(
-        r => `
-      <tr>
-        <td>${r.branchName}</td>
-        <td>${formatDate(r.date)}</td>
-        <td>${r.price}</td>
-        <td>${r.total}</td>
-        <td>${r.liter}</td>
-        <td>${r.paid}</td>
-      </tr>
-    `,
-      )
-      .join('');
+    const cleanRows = rows.map(r => ({
+      ...r,
+      price: r.price.toFixed(2),
+      total: r.total.toFixed(2),
+      liter: r.liter.toFixed(2),
+    }));
+    const ws = XLSX.utils.json_to_sheet(cleanRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sales');
+    const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    const filePath = `${RNFS.DownloadDirectoryPath}/sales-${formatDate(new Date().toISOString())}.xlsx`;
+    await RNFS.writeFile(filePath, wbout, 'base64');
+    await Share.open({ url: `file://${filePath}` });
 
-    const html = `
-      <h1 style="text-align:center;">Sales Report</h1>
-      <table border="1" style="width:100%;border-collapse:collapse;">
-        <tr>
-          <th>Branch</th>
-          <th>Date</th>
-          <th>Price</th>
-          <th>Total</th>
-          <th>Liter</th>
-          <th>Paid</th>
-        </tr>
-        ${tableRows}
-      </table>
-    `;
+  } catch (err) {
+    console.error("Excel Export error:", err);
+  }
+};
 
-    const pdf = await RNHTMLtoPDF.convert({
-      html,
-      fileName: 'SalesReport',
-      directory: 'Documents',
-    });
+// ✅ Export PDF
+const exportPDF = async (data: any[]) => {
 
-    await Share.open({
-      url: 'file://' + pdf.filePath,
-      type: 'application/pdf',
-    });
-  };
+  const file = await RNHTMLtoPDF.convert({
+    html: SalesPDFTemplate(flattenSalesData(data)),
+    fileName: `Sales_Report-${formatDate(new Date().toISOString())}`,
+    base64: true,
+  });
+
+  await Share.open({ url: `file://${file.filePath}` });
+};
+
 
   // ✅ Apply Filter
   const applyFilter = () => {

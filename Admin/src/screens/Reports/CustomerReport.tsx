@@ -14,102 +14,99 @@ import { AppDispatch, RootState } from '../../redux/store';
 import { fetchBranch } from '../../redux/slices/userSlice';
 import { formatDate } from '../../utils/CustomFunctions/DateFunctions';
 import { Branch } from '../../@types/User';
+import { CustomerPDFTemplate } from '../../components/Report/PDF Templates/CustomerReportPDF';
 
 export default function CustomerReport() {
-  const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState<Branch[]>([]);
   const [filterModal, setFilterModal] = useState(false);
+
   const dispatch = useDispatch<AppDispatch>();
-  const data:Branch[] = useSelector((state: RootState) => state.user.users);
-  // Demo data (replace with API later)
-  // const data = [
-  //   {
-  //     _id: "1",
-  //     branchName: "Chennai Main Branch",
-  //     email: "chennai@milk.com",
-  //     phone: "9876543210",
-  //     address: "No.12, Anna Nagar, Chennai",
-  //     contactPerson: "Ramesh",
-  //     location: "Chennai",
-  //     registeredDate: "2025-01-15",
-  //     role: "user",
-  //     type: "NKC Local",
-  //   },
-  //   {
-  //     _id: "2",
-  //     branchName: "Coimbatore Branch",
-  //     email: "coimbatore@milk.com",
-  //     phone: "9123456780",
-  //     address: "Race Course Road, Coimbatore",
-  //     contactPerson: "Suresh",
-  //     location: "Coimbatore",
-  //     registeredDate: "2025-02-10",
-  //     role: "user",
-  //     type: "AKC OUT",
-  //   },
-  // ];
+  const branches = useSelector((state: RootState) => state.user.users);
 
+  // 🔹 Fetch customers once
   useEffect(() => {
-    fetchCustomers();
-  }, []);
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchBranch());
+      } catch (err) {
+        console.log('Error fetching customers:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [dispatch]);
 
-  const fetchCustomers = async () => {
-    try {
-      await dispatch(fetchBranch());
-      setCustomers(data);
-      setFilteredData(data);
-    } catch (err) {
-      console.log('Error fetching customers:', err);
-    } finally {
-      setLoading(false);
+  // 🔹 Sync Redux data -> filteredData
+  useEffect(() => {
+    if (branches.length) {
+      setFilteredData(branches);
     }
-  };
+  }, [branches]);
 
   // 📌 Export functions
-  const exportCSV = async (rows: any[]) => {
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Customers');
-    const wbout = XLSX.write(wb, { type: 'base64', bookType: 'csv' });
-    const filePath = `${RNFS.DownloadDirectoryPath}/customers.csv`;
-    await RNFS.writeFile(filePath, wbout, 'base64');
-    await Share.open({ url: `file://${filePath}` });
-  };
+const exportCSV = async (rows: any[]) => {
+  // Remove unwanted fields
+  // Remove unwanted fields & rename headers
+    const cleanRows = rows.map(({ branchName, email, phone, contactPerson,registeredDate }) => ({
+    "Branch Name": branchName,
+    Email: email,
+    "Contact Number": phone,
+    "Contact Person": contactPerson,
+    "Registered Date": formatDate(registeredDate),
+  }));
+  const ws = XLSX.utils.json_to_sheet(cleanRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Customers");
+
+  const wbout = XLSX.write(wb, { type: "base64", bookType: "csv" });
+  const filePath = `${RNFS.DownloadDirectoryPath}/customers-${formatDate(new Date().toISOString())}.csv`;
+
+  await RNFS.writeFile(filePath, wbout, "base64");
+  await Share.open({ url: `file://${filePath}` });
+};
+
 
   const exportExcel = async (rows: any[]) => {
-    const ws = XLSX.utils.json_to_sheet(rows);
+      // Remove unwanted fields
+    const cleanRows = rows.map(({ branchName, email, phone, contactPerson,registeredDate }) => ({
+    "Branch Name": branchName,
+    Email: email,
+    "Contact Number": phone,
+    "Contact Person": contactPerson,
+    "Registered Date": formatDate(registeredDate),
+  }));
+    const ws = XLSX.utils.json_to_sheet(cleanRows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Customers');
     const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-    const filePath = `${RNFS.DownloadDirectoryPath}/customers.xlsx`;
+    const filePath = `${RNFS.DownloadDirectoryPath}/customers-${formatDate(new Date().toISOString())}.xlsx`;
     await RNFS.writeFile(filePath, wbout, 'base64');
     await Share.open({ url: `file://${filePath}` });
   };
 
-  const exportPDF = async (rows: any[]) => {
-    const html = `
-      <h1>Customer Report</h1>
-      <table border="1" style="width:100%;border-collapse:collapse;">
-        <tr>
-          <th>Branch</th><th>Email</th><th>Phone</th><th>Role</th>
-        </tr>
-        ${rows
-          .map(
-            c =>
-              `<tr><td>${c.branchName}</td><td>${c.email}</td><td>${c.phone}</td><td>${c.role}</td></tr>`,
-          )
-          .join('')}
-      </table>`;
-    const file = await RNHTMLtoPDF.convert({
-      html,
-      fileName: 'customers',
-      base64: true,
-    });
-    await Share.open({ url: `file://${file.filePath}` });
-  };
+const exportPDF = async (rows: Branch[]) => {
+  
 
-  if (loading) return <ActivityIndicator size="large" />;
+  const file = await RNHTMLtoPDF.convert({
+    html: CustomerPDFTemplate(rows),
+    fileName: `Customers_Report-${formatDate(new Date().toISOString())}`,
+    base64: true,
+  });
+
+  await Share.open({ url: `file://${file.filePath}` });
+};
+
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-50">
+        <ActivityIndicator size="large" color="#4CAF50" />
+        <Text className="mt-2 text-gray-600">Loading Customers...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -121,7 +118,7 @@ export default function CustomerReport() {
 
       {/* Customer List */}
       <ScrollView className="p-4">
-        {filteredData.map((c:Branch) => (
+        {filteredData.map((c: Branch) => (
           <View
             key={c._id}
             className="bg-white rounded-3xl shadow-lg p-5 mb-5 border border-gray-200"
@@ -139,60 +136,44 @@ export default function CustomerReport() {
             </View>
 
             {/* Location */}
-            <View className="flex-row items-center mb-2">
-              <Icon
-                name="location-on"
-                size={18}
-                color="#4b5563"
-                style={{ marginRight: 6 }}
-              />
-              <Text className="text-gray-700 text-base">{c.location}</Text>
-            </View>
+            {c.location && (
+              <View className="flex-row items-center mb-2">
+                <Icon name="location-on" size={18} color="#4b5563" style={{ marginRight: 6 }} />
+                <Text className="text-gray-700 text-base">{c.location}</Text>
+              </View>
+            )}
 
             {/* Email */}
-            <View className="flex-row items-center mb-2">
-              <Icon
-                name="email"
-                size={18}
-                color="#4b5563"
-                style={{ marginRight: 6 }}
-              />
-              <Text className="text-gray-700 text-base">{c.email}</Text>
-            </View>
+            {c.email && (
+              <View className="flex-row items-center mb-2">
+                <Icon name="email" size={18} color="#4b5563" style={{ marginRight: 6 }} />
+                <Text className="text-gray-700 text-base">{c.email}</Text>
+              </View>
+            )}
 
             {/* Phone */}
-            <View className="flex-row items-center mb-2">
-              <Icon
-                name="phone"
-                size={18}
-                color="#4b5563"
-                style={{ marginRight: 6 }}
-              />
-              <Text className="text-gray-700 text-base">{c.phone}</Text>
-            </View>
+            {c.phone && (
+              <View className="flex-row items-center mb-2">
+                <Icon name="phone" size={18} color="#4b5563" style={{ marginRight: 6 }} />
+                <Text className="text-gray-700 text-base">{c.phone}</Text>
+              </View>
+            )}
 
             {/* Contact Person */}
             {c.contactPerson && (
               <View className="flex-row items-center mb-1">
-                <Icon
-                  name="person"
-                  size={18}
-                  color="#4b5563"
-                  style={{ marginRight: 6 }}
-                />
-                <Text className="text-gray-700 text-base">
-                  {c.contactPerson}
-                </Text>
+                <Icon name="person" size={18} color="#4b5563" style={{ marginRight: 6 }} />
+                <Text className="text-gray-700 text-base">{c.contactPerson}</Text>
               </View>
             )}
 
-            {/* Registered Date (extra detail) */}
+            {/* Registered Date */}
             {c.registeredDate && (
               <View className="mt-3 border-t border-gray-100 pt-2">
-              <Text className="text-gray-500 text-sm">
-                Registered: {formatDate(c.registeredDate)}
-              </Text>
-            </View>
+                <Text className="text-gray-500 text-sm">
+                  Registered: {formatDate(c.registeredDate)}
+                </Text>
+              </View>
             )}
           </View>
         ))}
@@ -210,7 +191,7 @@ export default function CustomerReport() {
       <Modal visible={filterModal} animationType="slide" transparent={true}>
         <View className="flex-1 bg-black/50 justify-end">
           <CustomerFilterForm
-            customers={customers}
+            customers={branches}
             setFilteredData={setFilteredData}
             closeModal={() => setFilterModal(false)}
           />

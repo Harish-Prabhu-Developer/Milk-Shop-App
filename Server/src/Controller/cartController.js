@@ -5,47 +5,48 @@ import ProductModel from "../Model/ProductModel.js";
 
 // Add product to cart
 export const addToCart = async (req, res) => {
-    try {
-        const { productId, quantity } = req.body;
-        const userId = req.user._id; // from authentication middleware
+  try {
+    const { productId, quantity } = req.body;
+    const userId = req.user._id; // from authentication middleware
 
-        // Validate product exists
-        const product = await ProductModel.findById(productId);
-        if (!product) {
-            return res.status(404).json({ msg: "Product not found" });
-        }
-
-        // Find the user's cart
-        const cart = await CartModel.findOne({ user: userId });
-
-        if (!cart) {
-            // Create new cart if none exists
-            cart = new CartModel({ user: userId, items: [] });
-        }
-
-        // Check if product already in cart
-        const existingItem = cart.items.find(
-            (item) => item.product.toString() === productId
-        );
-
-        if (existingItem) {
-            // Update quantity
-            existingItem.quantity += quantity;
-        } else {
-            // Add new item
-            cart.items.push({ product: productId, quantity });
-        }
-
-        await cart.save();
-
-        res.status(200).json({
-            msg: "Product added to cart",
-            cart
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    // Validate product exists
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      return res.status(404).json({ msg: "Product not found" });
     }
+
+    // Find the user's cart
+    let cart = await CartModel.findOne({ user: userId });
+
+    if (!cart) {
+      // Create new cart if none exists
+      cart = new CartModel({ user: userId, items: [] });
+    }
+
+    // Check if product already in cart
+    const existingItem = cart.items.find(
+      (item) => item.product.toString() === productId
+    );
+
+    if (existingItem) {
+      // Update quantity
+      existingItem.quantity += quantity;
+    } else {
+      // Add new item
+      cart.items.push({ product: productId, quantity });
+    }
+
+    await cart.save();
+
+    res.status(200).json({
+      msg: "Product added to cart",
+      cart,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
+
 
 // Get cart
 // Get cart

@@ -57,7 +57,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
                   {(cartData.items?.length ?? 0) > 0 && (<View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />)}
                 </TouchableOpacity>
                 <TouchableOpacity className="relative bg-blue-800 p-2 rounded-lg"
-                  onPress={() => console.info('Notifications Pressed')}>
+                  onPress={() => navigation.navigate("Notifications")}>
                   <Icon name="notifications" size={20} color="#fff" />
                   <View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />
                 </TouchableOpacity>

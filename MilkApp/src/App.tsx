@@ -20,6 +20,7 @@ import {
   requestPushNotificationPermission
 } from '@Utils/PermissionFunctions/Permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Notifications from './Screens/Notifications';
 
 type RootStackParamList = {
   LoginScreen: undefined;
@@ -27,6 +28,7 @@ type RootStackParamList = {
   ProductDetailsScreen: Product;
   TabBar: undefined;
   CartScreen: undefined;
+  Notifications: undefined;
   OrderScreen: undefined;
   OrderDetailScreen: { Order: Order }; // Assuming you have an OrderDetailScreen
 };
@@ -85,6 +87,7 @@ const App = () => {
             />
             <Stack.Screen name="TabBar" component={TabBar} />
             <Stack.Screen name="CartScreen" component={CartScreen} />
+            <Stack.Screen name="Notifications" component={Notifications} />
             <Stack.Screen
               name="OrderDetailScreen"
               component={OrderDetailScreen}

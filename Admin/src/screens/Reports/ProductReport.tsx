@@ -1,5 +1,5 @@
 // ProductReport.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,19 +7,22 @@ import {
   ActivityIndicator,
   Image,
   Modal,
-} from 'react-native';
-import ReportHeader from '../../components/Report/Header/ReportHeader';
-import { AppDispatch, RootState } from '../../redux/store';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts } from '../../redux/slices/productSlice';
-import { API_URL } from '@env';
-import * as XLSX from 'xlsx';
-import RNFS from 'react-native-fs';
-import Share from 'react-native-share';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
+  Alert,
+} from "react-native";
+import ReportHeader from "../../components/Report/Header/ReportHeader";
+import { AppDispatch, RootState } from "../../redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts } from "../../redux/slices/productSlice";
+import { API_URL } from "@env";
+import RNFS from "react-native-fs";
+import Share from "react-native-share";
+import XLSX from "xlsx";
+import RNHTMLtoPDF from "react-native-html-to-pdf";
 
-import ExportButton from '../../components/Report/ExportButton';
-import ProductFilterForm from '../../components/Report/Product/ProductFilterForm';
+import ExportButton from "../../components/Report/ExportButton";
+import ProductFilterForm from "../../components/Report/Product/ProductFilterForm";
+import { ProductPDFTemplate } from "../../components/Report/PDF Templates/ProductReportPDF";
+import { formatDate } from "../../utils/CustomFunctions/DateFunctions";
 
 export default function ProductReport() {
   const [products, setProducts] = useState<any[]>([]);
@@ -30,117 +33,117 @@ export default function ProductReport() {
   const dispatch = useDispatch<AppDispatch>();
   const data = useSelector((state: RootState) => state.product.products);
 
+  // Fetch products once
   useEffect(() => {
     const fetchProductsData = async () => {
       try {
+        setLoading(true);
         await dispatch(fetchProducts());
       } catch (err) {
-        console.log('Error fetching products:', err);
+        console.log("Error fetching products:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchProductsData();
   }, [dispatch]);
 
+  // Sync redux to local state
   useEffect(() => {
-    setProducts(data);
-    setFilteredData(data); // default show all
-    setLoading(false);
+    if (data?.length) {
+      setProducts(data);
+      setFilteredData(data);
+    }
   }, [data]);
 
-  // ProductReport.tsx (inside your component)
+  // ---------------- EXPORT HANDLERS ----------------
 
-  // --- EXPORT HANDLERS ---
+const handleExportExcel = async () => {
+  try {
+    const rows = filteredData.map(p => ({
+      Name: p.name,
+      Price: p.price,
+      Unit: p.unit,
+      Description: p.description,
+      Category: p.category,
+      Status: p.isActive ? "Active" : "Inactive",
+    }));
 
-  // Export to CSV
-  const handleExportCSV = async () => {
-    try {
-      if (!filteredData.length) return;
-      const header = Object.keys(filteredData[0]).join(',') + '\n';
-      const rows = filteredData
-        .map(row => Object.values(row).join(','))
-        .join('\n');
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Products");
+    const wbout = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
 
-      const csv = header + rows;
-      const path = `${RNFS.DocumentDirectoryPath}/products.csv`;
-      await RNFS.writeFile(path, csv, 'utf8');
+    // ✅ Save to Download directory (shareable)
+    const path = `${RNFS.DownloadDirectoryPath}/products-${formatDate(new Date().toISOString())}.xlsx`;
 
-      await Share.open({
-        url: 'file://' + path,
-        type: 'text/csv',
-        filename: 'products',
-      });
-    } catch (err) {
-      console.log('CSV Export error:', err);
-    }
-  };
+    await RNFS.writeFile(path, wbout, "base64");
 
-  // Export to Excel
-  const handleExportExcel = async () => {
-    try {
-      if (!filteredData.length) return;
-      const ws = XLSX.utils.json_to_sheet(filteredData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Products');
-      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    await Share.open({
+      url: `file://${path}`, // ✅ ensure correct prefix
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+  } catch (err) {
+    console.log("Excel Export error:", err);
+  }
+};
 
-      const path = `${RNFS.DocumentDirectoryPath}/products.xlsx`;
-      await RNFS.writeFile(path, wbout, 'base64');
+const handleExportCSV = async () => {
+  try {
+    const rows = filteredData.map(p => ({
+      Name: p.name,
+      Price: p.price,
+      Unit: p.unit,
+      Description: p.description,
+      Category: p.category,
+      Status: p.isActive ? "Active" : "Inactive",
+    }));
 
-      await Share.open({
-        url: 'file://' + path,
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        filename: 'products',
-      });
-    } catch (err) {
-      console.log('Excel Export error:', err);
-    }
-  };
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Products");
+    const wbout = XLSX.write(wb, { type: "base64", bookType: "csv" });
 
-  // Export to PDF
+    const path = `${RNFS.DownloadDirectoryPath}/products-${formatDate(new Date().toISOString())}.csv`;
+
+    await RNFS.writeFile(path, wbout, "base64");
+
+    await Share.open({
+      url: `file://${path}`, // ✅ important for Android
+      type: "text/csv",
+    });
+  } catch (err) {
+    console.log("CSV Export error:", err);
+  }
+};
+
   const handleExportPDF = async () => {
     try {
-      if (!filteredData.length) return;
-      let html = `
-      <h1>Product Report</h1>
-      <table border="1" cellspacing="0" cellpadding="5">
-        <tr>
-          <th>Name</th>
-          <th>Price</th>
-          <th>Unit</th>
-          <th>Category</th>
-        </tr>
-        ${filteredData
-          .map(
-            p => `
-          <tr>
-            <td>${p.name}</td>
-            <td>₹${p.price}</td>
-            <td>${p.unit}</td>
-            <td>${p.category}</td>
-          </tr>
-        `,
-          )
-          .join('')}
-      </table>
-    `;
-
-      const file = await RNHTMLtoPDF.convert({
-        html,
-        fileName: 'products',
+      if (!filteredData.length) return Alert.alert("No data to export");
+       const file = await RNHTMLtoPDF.convert({
+        html: ProductPDFTemplate(filteredData),
+        fileName: `Product_Report-${formatDate(new Date().toISOString())}`,
         base64: true,
       });
 
       await Share.open({
-        url: 'file://' + file.filePath,
-        type: 'application/pdf',
-        filename: 'products',
+        url: "file://" + file.filePath,
+        type: "application/pdf",
+        filename: "products",
       });
     } catch (err) {
-      console.log('PDF Export error:', err);
+      console.log("PDF Export error:", err);
     }
   };
 
-  if (loading) return <ActivityIndicator size="large" />;
+  // ---------------- RENDER ----------------
+  if (loading)
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#4CAF50" />
+        <Text className="mt-2 text-gray-600">Loading Reports...</Text>
+      </View>
+    );
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -157,18 +160,21 @@ export default function ProductReport() {
             key={p._id}
             className="bg-white rounded-3xl shadow-lg mb-5 border border-gray-100 overflow-hidden"
           >
-            <View className="flex-row items-center p-4">
+            <View className="flex-row items-start p-4">
               {/* Product Image */}
               <View className="w-24 h-24 bg-gray-100 rounded-2xl mr-4 justify-center items-center">
-                <Image
-                  source={{ uri: `${API_URL}/${p.image}` }}
-                  className="w-24 h-24 rounded-2xl"
-                />
+                {p.image ? (
+                  <Image
+                    source={{ uri: `${API_URL}/${p.image.replace(/\\/g, "/")}` }}
+                    className="w-24 h-24 rounded-2xl"
+                  />
+                ) : (
+                  <Text className="text-gray-400 text-xs">No Image</Text>
+                )}
               </View>
 
               {/* Product Info */}
               <View className="flex-1">
-                {/* Name + Price */}
                 <View className="flex-row justify-between items-center mb-1">
                   <Text className="text-lg font-semibold text-gray-900">
                     {p.name}
@@ -178,7 +184,6 @@ export default function ProductReport() {
                   </Text>
                 </View>
 
-                {/* Unit + Category */}
                 <View className="flex-row items-center mb-2">
                   <Text className="text-gray-500 text-sm mr-3">{p.unit}</Text>
                   <View className="bg-blue-100 px-2 py-0.5 rounded-full">
@@ -188,28 +193,29 @@ export default function ProductReport() {
                   </View>
                 </View>
 
-                {/* Description */}
-                <Text className="text-gray-600 text-sm mb-2" numberOfLines={1}>
-                  {p.description}
-                </Text>
+                {!!p.description && (
+                  <Text className="text-gray-600 text-sm mb-2" numberOfLines={2}>
+                    {p.description}
+                  </Text>
+                )}
 
-                {/* Nutrition */}
-                <Text className="text-gray-500 text-xs mb-1" numberOfLines={1}>
-                  Nutrition: {p.nutrition}
-                </Text>
+                {!!p.nutrition && (
+                  <Text className="text-gray-500 text-xs mb-1" numberOfLines={2}>
+                    Nutrition: {p.nutrition}
+                  </Text>
+                )}
 
-                {/* Status */}
                 <View
                   className={`px-3 py-1 mt-2 self-end rounded-full ${
-                    p.isActive ? 'bg-green-100' : 'bg-red-100'
+                    p.isActive ? "bg-green-100" : "bg-red-100"
                   }`}
                 >
                   <Text
                     className={`text-xs font-medium ${
-                      p.isActive ? 'text-green-700' : 'text-red-700'
+                      p.isActive ? "text-green-700" : "text-red-700"
                     }`}
                   >
-                    {p.isActive ? 'Active' : 'Inactive'}
+                    {p.isActive ? "Active" : "Inactive"}
                   </Text>
                 </View>
               </View>

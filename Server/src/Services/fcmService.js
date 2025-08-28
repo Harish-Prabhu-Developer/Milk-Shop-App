@@ -36,3 +36,4 @@ export const sendNotificationToMany = async (tokens, title, body, data = {}) => 
     throw error;
   }
 };
+

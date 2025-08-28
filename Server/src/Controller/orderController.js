@@ -1,5 +1,6 @@
 // controllers/orderController.js
 import CartModel from "../Model/CartModel.js";
+import NotificationModel from "../Model/NotificationModel.js";
 import OrderModel from "../Model/OrderModel.js";
 
 export const createOrder = async (req, res) => {
@@ -30,10 +31,11 @@ export const createOrder = async (req, res) => {
       (acc, item) => acc + item.Total,
       0
     );
+    const userName = req.user?.name || "USR"; // fallback if name not available
+    const namePart = userName.substring(0, 5).toUpperCase(); // take first 5 chars
+
     const order = await OrderModel.create({
-      OrderId: `ORD${Date.now()}${req.user.name}${Math.floor(
-        Math.random() * 1000
-      )}`,
+      OrderId: `ORD${Date.now()}${namePart}${Math.floor(Math.random() * 1000)}`,
       ProductData: productData,
       Branch: userId, // Replace with actual branch if needed
       TotalAmount: totalAmount,
@@ -137,34 +139,50 @@ export const updateOrder = async (req, res) => {
 
     // Optional: auto-update ReceivedStatus if all items are received
     // ✅ Auto-update ReceivedStatus & OrderStatus
-if (Array.isArray(ReceivedItems) && order.ProductData.length > 0) {
-  const totalOrderedQty = order.ProductData.reduce(
-    (sum, p) => sum + (p.quantity || 0),
-    0
-  );
-  const totalReceivedQty = ReceivedItems.reduce(
-    (sum, r) => sum + (r.receivedQty || 0),
-    0
-  );
+    if (Array.isArray(ReceivedItems)) {
+      const totalOrderedQty = order.ProductData.reduce(
+        (sum, p) => sum + (p.quantity || 0),
+        0
+      );
+      const totalReceivedQty = ReceivedItems.reduce(
+        (sum, r) => sum + (r.receivedQty || 0),
+        0
+      );
 
-  if (totalReceivedQty === 0) {
-    // Nothing received yet
-    order.ReceivedStatus = "Pending";
-    order.OrderStatus = "Processing"; // ⬅️ stays in-progress, not delivered
-  } else if (totalReceivedQty !== totalOrderedQty) {
-    // Some but not all items received
-    order.ReceivedStatus = "Partial";
-    order.OrderStatus = "Delivered"; // still ongoing
-  } else if (totalReceivedQty === totalOrderedQty) {
-    // All items received
-    order.ReceivedStatus = "Confirmed";
-    order.OrderStatus = "Delivered";
-  }else{
-    order.ReceivedStatus = "Pending";
-    order.OrderStatus = "Processing";
-  }
+      if (totalReceivedQty === 0) {
+        // Nothing received yet
+        order.ReceivedStatus = "Pending";
+        order.OrderStatus = "Processing";
+      } else if (totalReceivedQty > 0 && totalReceivedQty < totalOrderedQty) {
+        // Some but not all items received
+        order.ReceivedStatus = "Partial";
+        order.OrderStatus = "Processing"; // ⬅️ keep as Processing until fully delivered
+      } else if (totalReceivedQty === totalOrderedQty) {
+        // All items received
+        order.ReceivedStatus = "Confirmed";
+        order.OrderStatus = "Delivered";
+      }
+    }
+
+    if (order.OrderStatus === "Delivered") {
+  await NotificationModel.create({
+    title: "Order Delivered",
+    message: `Your order ${order.OrderId} has been delivered.`,
+    type: "delivery",
+    user: order.Branch,
+    order: order._id,
+  });
 }
 
+if (order.OrderStatus === "Processing") {
+  await NotificationModel.create({
+    title: "Order Processing",
+    message: `Your order ${order.OrderId} is being processed.`,
+    type: "processing",
+    user: order.Branch,
+    order: order._id,
+  });
+}
     // If provided in request, manually override status/date
     if (ReceivedStatus) order.ReceivedStatus = ReceivedStatus;
     if (ReceivedDate) {
