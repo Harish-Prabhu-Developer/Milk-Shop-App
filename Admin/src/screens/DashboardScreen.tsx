@@ -7,6 +7,7 @@ import {
   BackHandler,
   Alert,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { Card } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -128,7 +129,14 @@ const DashboardScreen = () => {
   return (
     <View className="flex-1 bg-white">
       <Header title={'Dashboard'} />
-      <ScrollView className="mt-4 p-4">
+      <ScrollView className="mt-4 p-4"
+      refreshControl={
+        <RefreshControl
+          refreshing={loading}
+          onRefresh={fetchApi}
+        />
+      }>
+        
         {/* Top Stats */}
         <View className="flex-row flex-wrap items-center gap-4 mb-4">
           {renderCart({

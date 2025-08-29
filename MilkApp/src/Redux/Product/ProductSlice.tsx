@@ -17,7 +17,8 @@ export const fetchProducts = createAsyncThunk(
     "milkapp/products/all",
     async () => {
         try {
-
+        console.log("API",API_URL);
+        
         const response = await axios.get(`${API_URL}/milkapp/products/all`);
         console.log("Product Response:", response.data);
         

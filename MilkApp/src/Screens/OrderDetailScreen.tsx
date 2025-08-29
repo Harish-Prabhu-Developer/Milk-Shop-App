@@ -28,8 +28,9 @@ import { AppDispatch, RootState } from '@Redux/Store';
 
 import ConfirmOrderModal from '@Components/Alert/ConfirmOrderModal';
 import { Items } from '@Utils/@types/Cart';
-import { API_URL } from '@env';
+
 import { ReOrderData, updateOrderData } from '@Redux/Order/OrderSlice';
+import { API_URL } from '@env';
 
 const OrderDetailScreen = () => {
   const route = useRoute();

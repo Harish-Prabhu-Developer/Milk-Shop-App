@@ -69,6 +69,8 @@ export const fetchOrder = createAsyncThunk<any, void, { rejectValue: string }>(
   'milkapp/order/getall',
   async (_, { rejectWithValue }) => {
     try {
+      console.log("API : ",API_URL);
+      
       const headers = await getHeaders();
       const response = await axios.get(`${API_URL}/milkapp/order/`, headers);
       return response.data;

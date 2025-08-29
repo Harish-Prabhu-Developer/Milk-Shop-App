@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { Card } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -54,7 +55,8 @@ const ReportScreen = () => {
     <View className="flex-1 bg-white">
       <Header title={"Reports"} />
 
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16 }}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchingReport} />}>
         {/* Date Range Filter */}
         <View className="flex-row justify-between items-center mb-4">
           <Text className="text-xl font-semibold">

@@ -42,7 +42,7 @@ export const addToCart = createAsyncThunk<
 >('milkapp/cart/add', async (productAddToCart, { rejectWithValue }) => {
   try {
     const headers = await getHeaders();
-    console.log('API_URL', API_URL);
+    console.log('API', API_URL);
 
     const res = await axios.post(
       `${API_URL}/milkapp/cart/add`,

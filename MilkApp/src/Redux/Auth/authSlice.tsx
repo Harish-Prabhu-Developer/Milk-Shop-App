@@ -39,6 +39,8 @@ export const login = createAsyncThunk(
   'milkapp/auth/login',
   async (credentials:{email:string,password:string}, { rejectWithValue }) => {
     try {
+      console.log("API",API_URL);
+      
       const res = await axios.post(
         `${API_URL}/milkapp/auth/login`,
         credentials,

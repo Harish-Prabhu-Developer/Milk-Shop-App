@@ -100,7 +100,7 @@ const filteredProducts = productsData.filter((item) =>
 
   return (
     <View className="flex-1 bg-gray-50">
-      <StatusBar barStyle="light-content" />
+
 
       {/* Header with Search */}
       <KeyboardAvoidingView behavior="padding">

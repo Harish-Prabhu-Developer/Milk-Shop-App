@@ -48,6 +48,7 @@ const CartScreen = () => {
 
   useEffect(() => {
     console.log('Cart Data:', cartData);
+    console.log("API : ",API_URL);
     
     fetchProductsData();
   }, []);

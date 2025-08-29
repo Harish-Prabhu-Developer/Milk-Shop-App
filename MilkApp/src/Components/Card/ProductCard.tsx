@@ -20,7 +20,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ name, price, image,quantity,unit,description,nutrition, onAddToCart }: ProductCardProps) => {
   const [Quantity, setQuantity] = useState(quantity || 1); // Default quantity to 1 if not provided
-console.log("API_URL",API_URL);
+console.log("API : ",API_URL);
 
 
   return (

@@ -113,7 +113,7 @@ const OrderDetailScreen = () => {
       Alert.alert(
         'Order Cancelled',
         `${Order.Branch?.branchName} order has been cancelled successfully!`,
-        [{ text: 'OK', onPress: () => navigation.navigate('OrderScreen') }],
+        [{ text: 'OK', onPress: () => navigation.navigate('Drawer', { screen: 'OrderScreen' }) }], 
       );
     }
   };
@@ -131,7 +131,8 @@ const OrderDetailScreen = () => {
       Alert.alert(
         'Order Processing Start',
         `${Order.Branch?.branchName} order has been confirmed successfully!`,
-        [{ text: 'OK', onPress: () => navigation.navigate('OrderScreen') }],
+        // This OrderDetailScreen(Stack Navigator)  Moved to  Drawer is a DrawerNavigator into OrderScreen
+        [{ text: 'OK', onPress: () => navigation.navigate('Drawer', { screen: 'OrderScreen' }) }],
       );
     }
   };

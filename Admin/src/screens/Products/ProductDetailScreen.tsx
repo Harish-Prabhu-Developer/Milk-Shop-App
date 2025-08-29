@@ -15,8 +15,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ProductForm from '../../components/Product/ProductForm';
 import { AppDispatch } from '../../redux/store';
 import { useDispatch } from 'react-redux';
-import { API_URL } from '@env';
 import { deleteProduct, updateProduct } from '../../redux/slices/productSlice';
+import { API_URL } from '@env';
 
 
 const ProductDetailScreen = () => {
@@ -130,11 +130,7 @@ const ProductDetailScreen = () => {
             <View className="w-44 h-44 rounded-2xl overflow-hidden bg-gray-100 shadow-lg">
               {product?.image ? (
                 <Image
-                  source={
-                    typeof product.image === 'string'
-                      ? { uri: `${API_URL}/${product.image}` }
-                      : product.image
-                  }
+                  source={{ uri: `${API_URL}/${product.image}` }}
                   className="w-full h-full"
                   resizeMode="cover"
                 />

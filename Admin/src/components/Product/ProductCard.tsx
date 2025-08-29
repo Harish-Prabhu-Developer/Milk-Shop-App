@@ -5,6 +5,7 @@ import { Product } from '../../@types/Product';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { API_URL } from '@env';
 
+
 interface ProductCardProps {
   product: Product;
   onPress?: () => void;
@@ -13,6 +14,8 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onPress, onEdit, onDelete }: ProductCardProps) => {
+  console.log("ProductCard API ",API_URL);
+  
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -25,7 +28,7 @@ const ProductCard = ({ product, onPress, onEdit, onDelete }: ProductCardProps) =
         <View className="w-[90px] h-[90px] rounded-xl overflow-hidden bg-gray-100 mr-4">
           {product.image ? (
             <Image
-              source={typeof product.image === 'string' ? { uri: `${API_URL}/${product.image}` } : product.image}
+              source={{ uri: `${API_URL}/${product.image}`}}
               className="w-full h-full"
               resizeMode="cover"
             />

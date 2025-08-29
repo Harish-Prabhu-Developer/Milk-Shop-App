@@ -25,7 +25,7 @@ const ProductDetailsScreen = () => {
   dispatch(addToCart(productToAdd));
   }
     useEffect(() => {
-    console.log('API_URL:', API_URL);
+    console.log('API : ', API_URL);
   }, []);
 
   return (
