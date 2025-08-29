@@ -9,12 +9,30 @@ interface User {
   email: string;
 }
 
+interface Notification{
+  _id: string;
+  title: string;
+  message: string;
+  date: string;
+  type: string;
+}
+
 interface AuthState {
   user: User | null;
   OnStatus: string;
   loading: boolean;
+  notificationCount: number;
+  notifications: Notification[];
   error: string | null;
 }
+const getHeaders = async () => {
+  const token = await AsyncStorage.getItem('token');
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+};
 
 // Async Thunk for login
 export const login = createAsyncThunk(
@@ -38,9 +56,31 @@ export const login = createAsyncThunk(
     }
   },
 );
+
+// Async Thunk for fetching notifications
+export const fetchNotifications = createAsyncThunk(
+  'milkapp/auth/fetchNotifications',
+  async (_, { rejectWithValue }) => {
+    try {
+      const headers = await getHeaders();
+      const res = await axios.get(`${API_URL}/milkapp/auth/notifications`, headers);
+      console.log('Notifications Response:', res.data);
+      return res.data;
+    } catch (error: any) {
+      if (!error.response) {
+        console.log('Network Error: Server unreachable.');
+        return rejectWithValue('Network Error: Server unreachable.');
+      }
+      return rejectWithValue(error.response.data?.msg || 'Failed to fetch notifications');
+    }
+  }
+);
+
 const initialState: AuthState = {
   user: null,
   OnStatus: '',
+  notificationCount: 0,
+  notifications: [],
   loading: false,
   error: null,
 };
@@ -84,7 +124,20 @@ const authSlice = createSlice({
         state.error = typeof action.payload === "string" ? action.payload : "Login failed";
         
       })
-  },
+      .addCase(fetchNotifications.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchNotifications.fulfilled, (state, action) => {
+        state.loading = false;
+        state.notifications = action.payload;
+        state.notificationCount = action.payload.length;
+      })
+      .addCase(fetchNotifications.rejected, (state, action) => {
+        state.loading = false;
+        state.error = "Failed to fetch notifications";
+      });
+    },
 });
 
 export default authSlice.reducer;

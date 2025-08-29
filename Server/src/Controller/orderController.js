@@ -48,6 +48,15 @@ export const createOrder = async (req, res) => {
     cart.items = [];
     await cart.save();
 
+    // inside createOrder, just before sending res.json
+    await NotificationModel.create({
+      title: "New Order Placed",
+      message: `Order ${order.OrderId} has been placed successfully.`,
+      type: "order",
+      user: userId,   // or order.Branch
+      order: order._id,
+    });
+
     const fulneworder = await OrderModel.findById(order._id)
       .populate("ProductData.product")
       .populate("Branch", "_id branchName email phone role");
@@ -82,19 +91,27 @@ export const ReOrder = async (req, res) => {
     const totalAmount = oldOrder.ProductData.reduce((acc, item) => {
       return acc + (item.product?.price || 0) * item.quantity;
     }, 0);
-
+ const userName = req.user?.name || "USR"; // fallback if name not available
+    const namePart = userName.substring(0, 5).toUpperCase(); // take first 5 chars
     // Create new order
     const newOrder = await OrderModel.create({
-      OrderId: `ORD${Date.now()}${req.user.name}${Math.floor(
-        Math.random() * 1000
-      )}`,
+      OrderId: `ORD${Date.now()}${namePart}${Math.floor(Math.random() * 1000)}`,
       ProductData: productData,
-      Branch: userId, // Keeping the same branch (user placing the reorder)
+      Branch: userId, // Replace with actual branch if needed
       TotalAmount: totalAmount,
       OrderStatus: "Pending",
       PaymentStatus: "Pending",
       ReceivedStatus: "Pending",
     });
+
+    await NotificationModel.create({
+      title: "Re-Order Placed",
+      message: `Re-Order ${newOrder.OrderId} has been placed successfully.`,
+      type: "order",
+      user: userId,
+      order: newOrder._id,
+    });
+
     const fulneworder = await OrderModel.findById(newOrder._id)
       .populate("ProductData.product")
       .populate("Branch", "_id branchName email phone role");
@@ -108,6 +125,7 @@ export const ReOrder = async (req, res) => {
 };
 
 // Update the Order (including ReceivedItems)
+// Update the Order (including ReceivedItems)
 export const updateOrder = async (req, res) => {
   try {
     const { id } = req.params;
@@ -118,13 +136,12 @@ export const updateOrder = async (req, res) => {
       .populate("Branch", "_id branchName email phone role");
     if (!order) return res.status(404).json({ msg: "Order not found" });
 
-    // If ReceivedItems is provided, update them
+    // ✅ Update ReceivedItems
     if (Array.isArray(ReceivedItems)) {
       ReceivedItems.forEach((received) => {
         const existing = order.ReceivedItems.find(
-          (item) => item.productId === received.productId
+          (item) => String(item.productId) === String(received.productId)
         );
-        console.log("existing : ", existing);
 
         if (existing) {
           existing.receivedQty = received.receivedQty;
@@ -137,65 +154,83 @@ export const updateOrder = async (req, res) => {
       });
     }
 
-    // Optional: auto-update ReceivedStatus if all items are received
-    // ✅ Auto-update ReceivedStatus & OrderStatus
-    if (Array.isArray(ReceivedItems)) {
-      const totalOrderedQty = order.ProductData.reduce(
-        (sum, p) => sum + (p.quantity || 0),
-        0
-      );
-      const totalReceivedQty = ReceivedItems.reduce(
-        (sum, r) => sum + (r.receivedQty || 0),
-        0
-      );
+    // ✅ Auto-update statuses (per-product check)
+    if (order.ReceivedItems.length === 0) {
+      // Nothing received yet
+      order.ReceivedStatus = "Pending";
+      order.OrderStatus = "Processing";
+    } else {
+      let allReceived = true;
+      let someReceived = false;
 
-      if (totalReceivedQty === 0) {
-        // Nothing received yet
+      order.ProductData.forEach((p) => {
+        const received = order.ReceivedItems.find(
+          (r) => String(r.productId) === String(p.product._id)
+        );
+        const receivedQty = received?.receivedQty || 0;
+
+        if (receivedQty === 0) {
+          allReceived = false;
+        } else if (receivedQty < p.quantity) {
+          allReceived = false;
+          someReceived = true;
+        } else if (receivedQty > 0) {
+          someReceived = true;
+        }
+      });
+
+      if (!someReceived) {
         order.ReceivedStatus = "Pending";
         order.OrderStatus = "Processing";
-      } else if (totalReceivedQty > 0 && totalReceivedQty < totalOrderedQty) {
-        // Some but not all items received
-        order.ReceivedStatus = "Partial";
-        order.OrderStatus = "Processing"; // ⬅️ keep as Processing until fully delivered
-      } else if (totalReceivedQty === totalOrderedQty) {
-        // All items received
+      } else if (allReceived) {
         order.ReceivedStatus = "Confirmed";
         order.OrderStatus = "Delivered";
+      } else {
+        order.ReceivedStatus = "Partial";
+        order.OrderStatus = "Processing";
       }
     }
 
-    if (order.OrderStatus === "Delivered") {
-  await NotificationModel.create({
-    title: "Order Delivered",
-    message: `Your order ${order.OrderId} has been delivered.`,
-    type: "delivery",
-    user: order.Branch,
-    order: order._id,
-  });
-}
-
-if (order.OrderStatus === "Processing") {
-  await NotificationModel.create({
-    title: "Order Processing",
-    message: `Your order ${order.OrderId} is being processed.`,
-    type: "processing",
-    user: order.Branch,
-    order: order._id,
-  });
-}
-    // If provided in request, manually override status/date
-    if (ReceivedStatus) order.ReceivedStatus = ReceivedStatus;
+    // ✅ Set ReceivedDate
     if (ReceivedDate) {
       order.ReceivedDate = new Date(ReceivedDate);
-    } else if (ReceivedItems?.length > 0) {
-      // Auto-set ReceivedDate if items are received
+    } else if (order.ReceivedItems.length > 0 && !order.ReceivedDate) {
       order.ReceivedDate = new Date();
     }
 
-    // Apply other updates if needed
+    // ✅ Apply extra updates from body
     Object.assign(order, rest);
 
     await order.save();
+
+    // ✅ Notifications (deduplicated)
+    if (order.PaymentStatus === "Completed") {
+      await NotificationModel.create({
+        title: "Payment Completed",
+        message: `Payment for order ${order.OrderId} was successful.`,
+        type: "payment",
+        user: order.Branch._id,
+        order: order._id,
+      });
+    }
+
+    if (order.OrderStatus === "Delivered") {
+      await NotificationModel.create({
+        title: "Order Delivered",
+        message: `Your order ${order.OrderId} has been delivered.`,
+        type: "delivery",
+        user: order.Branch._id,
+        order: order._id,
+      });
+    } else if (order.OrderStatus === "Processing") {
+      await NotificationModel.create({
+        title: "Order Processing",
+        message: `Your order ${order.OrderId} is being processed.`,
+        type: "processing",
+        user: order.Branch._id,
+        order: order._id,
+      });
+    }
 
     res.status(200).json({ msg: "Order updated", order });
   } catch (error) {
@@ -203,12 +238,20 @@ if (order.OrderStatus === "Processing") {
   }
 };
 
+
 // Delete the Order
 export const deleteOrder = async (req, res) => {
   try {
     const { id } = req.params;
     const order = await OrderModel.findByIdAndDelete(id);
     if (!order) return res.status(404).json({ msg: "Order not found" });
+    await NotificationModel.create({
+      title: "Order Cancelled",
+      message: `Order ${order.OrderId} has been cancelled.`,
+      type: "order",
+      user: order.Branch._id,
+      order: order._id,
+    });
 
     res.status(200).json({ msg: "Order deleted" });
   } catch (error) {

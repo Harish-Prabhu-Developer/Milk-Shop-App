@@ -1,5 +1,5 @@
 import { View, Text, Image, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import IncreaseButton from '@Components/Input/IncreaseButton';
 import { useDispatch } from 'react-redux';
@@ -25,8 +25,10 @@ const ProductDetailsScreen = () => {
       quantity: quantity
   };
   dispatch(addToCart(productToAdd));
-
-  };
+  }
+    useEffect(() => {
+    console.log('API_URL:', API_URL);
+  }, []);
 
   return (
     <View className="flex-1 bg-white">

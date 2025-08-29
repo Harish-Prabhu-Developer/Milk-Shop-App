@@ -1,49 +1,32 @@
 // Notifications.tsx
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import moment from "moment";
+import { AppDispatch, RootState } from "@Redux/Store";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchNotifications } from "@Redux/Auth/authSlice";
 
 const Notifications = () => {
-  // Example Data
-  const [notifications] = useState([
-    {
-      id: "1",
-      title: "New Order Placed",
-      message: "Order ORD202508281245 has been placed successfully.",
-      date: "2025-08-28T12:45:00.000Z", // Today
-      type: "order",
-    },
-    {
-      id: "2",
-      title: "Payment Completed",
-      message: "Order ORD202508271110 payment was successful.",
-      date: "2025-08-27T11:10:00.000Z", // Yesterday
-      type: "payment",
-    },
-    {
-      id: "3",
-      title: "Order Processing",
-      message: "Order ORD202508271250 is being prepared for delivery.",
-      date: "2025-08-27T12:50:00.000Z", // Yesterday
-      type: "processing",
-    },
-    {
-      id: "4",
-      title: "Order Delivered",
-      message: "Order ORD202508251045 has been delivered.",
-      date: "2025-08-25T10:45:00.000Z", // Monday
-      type: "delivery",
-    },
-  ]);
+  const dispatch = useDispatch<AppDispatch>();
 
-  // Group Notifications
+  // ✅ Use Redux state
+  const { notifications, loading } = useSelector(
+    (state: RootState) => state.auth
+  );
+
+  useEffect(() => {
+    dispatch(fetchNotifications()); // ✅ Call thunk on mount
+  }, [dispatch]);
+
+  // Group Notifications by date
   const groupByDate = () => {
     const today = moment().startOf("day");
     const yesterday = moment().subtract(1, "days").startOf("day");
@@ -94,9 +77,29 @@ const Notifications = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-50">
+        <ActivityIndicator size="large" color="#2563eb" />
+        <Text className="mt-4 text-gray-500 font-medium">
+          Loading notifications...
+        </Text>
+      </View>
+    );
+  }
+
+  if (notifications.length === 0) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-50">
+        <Ionicons name="notifications-off" size={48} color="#9ca3af" />
+        <Text className="text-gray-400 text-lg mt-2">No Notifications</Text>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-gray-50">
-      <StatusBar barStyle={"light-content"} backgroundColor="#f9fafb" />
+      <StatusBar barStyle={"light-content"} backgroundColor="#2563eb" />
 
       {/* Header */}
       <View className="px-6 py-5 bg-primary border-b border-gray-200 shadow-sm">
@@ -121,7 +124,7 @@ const Notifications = () => {
               const badge = getBadgeStyle(item.type);
               return (
                 <TouchableOpacity
-                  key={item.id}
+                  key={item._id} // ✅ FIXED: use _id instead of id
                   activeOpacity={0.9}
                   className="flex-row items-start bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100"
                 >

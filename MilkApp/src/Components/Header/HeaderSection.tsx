@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import { CartProduct } from '@Utils/@types/Cart';
 import { fetchCart } from '@Redux/Cart/CartSlice';
+import { fetchNotifications } from '@Redux/Auth/authSlice';
 type HeaderSectionProps = {
     SearchBar?: boolean;
     onSearch?: (query: string) => void;
@@ -21,6 +22,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
      const navigation = useNavigation<StackNavigationProp<any>>();     
      const dispatch = useDispatch<AppDispatch>();
      const cartData: CartProduct = useSelector((state: RootState) => state.Cart.Carts);
+     const notificationCount = useSelector((state: RootState) => state.auth.notificationCount);
      const [displayName, setDisplayName] = useState('Branch');
   useEffect(()=>{
     console.log("Test",cartData.items?.length ?? 0);
@@ -30,6 +32,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
         if (token) {
           const decode=jwtDecode<any>(token);
           await dispatch(fetchCart());
+          await dispatch(fetchNotifications());
           setDisplayName(decode.name);
         }else{
           setDisplayName('Branch');
@@ -59,7 +62,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({SearchBar, onSearch}) => {
                 <TouchableOpacity className="relative bg-blue-800 p-2 rounded-lg"
                   onPress={() => navigation.navigate("Notifications")}>
                   <Icon name="notifications" size={20} color="#fff" />
-                  <View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />
+                  {notificationCount > 0 && (<View className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2" />)}
                 </TouchableOpacity>
               </View>
             </View>

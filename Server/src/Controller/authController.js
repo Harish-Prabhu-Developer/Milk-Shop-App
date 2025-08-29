@@ -1,5 +1,6 @@
 import generateToken from "../Config/jwthelper.js";
 import BranchModel from "../Model/BranchModel.js";
+import NotificationModel from "../Model/NotificationModel.js";
 
 // create or register a new user
 export const registerBranch = async (req, res) => {
@@ -80,4 +81,21 @@ export const loginBranch = async (req, res) => {
 
 // reset password link
 export const resetPassword = async (req, res) => {
+};
+
+
+// get Notifications
+export const getNotifications = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const notifications = await NotificationModel.find({ user: userId })
+      .populate("order")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json( notifications );
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
 };
