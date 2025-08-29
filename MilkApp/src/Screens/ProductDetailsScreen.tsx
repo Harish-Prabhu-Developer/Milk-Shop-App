@@ -1,9 +1,8 @@
 import { View, Text, Image, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import IncreaseButton from '@Components/Input/IncreaseButton';
 import { useDispatch } from 'react-redux';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { AppDispatch } from '@Redux/Store';
 
 import { API_URL } from '@env';
@@ -14,7 +13,6 @@ const ProductDetailsScreen = () => {
   const route = useRoute();
   const product = route.params as ProductWithQuantity;
 
-  const navigation = useNavigation<StackNavigationProp<any>>();
   const dispatch = useDispatch<AppDispatch>();
   const [quantity, setQuantity] = useState(product.quantity || 1); // Default quantity to 1 if not provided
 

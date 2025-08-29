@@ -103,15 +103,6 @@ const DeliveryReport = () => {
 
   const handleExportExcel = async () => {
     try {
-      // id: "1",
-      // routeGroup: "ROUTE 1",
-      // vehicleType: "COMPANY VEHICLE",
-      // location: "Anna Nagar, Chennai",
-      // distance: "12km",
-      // branchName: "Chennai Main Branch",
-      // orderId: "ORD1001",
-      // orderStatus: "Delivered",
-      // totalAmount: 450,
       const exportData = filteredData.length > 0 ? filteredData : deliveries;
       if (exportData.length === 0) return Alert.alert('No data to export');
       const cleanRows = exportData.map((r: any) => ({
@@ -178,9 +169,9 @@ const DeliveryReport = () => {
       />
 
       <ScrollView className="p-4">
-        {(filteredData.length > 0 ? filteredData : deliveries).map(d => (
+        {(filteredData.length > 0 ? filteredData : deliveries).map((d,index) => (
           <View
-            key={d.id || d._id}
+            key={index||d._id}
             className="bg-white rounded-3xl mb-6 shadow-lg border border-gray-300 overflow-hidden"
           >
             <LinearGradient

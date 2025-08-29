@@ -14,6 +14,7 @@ const PastOrders = ({ OrdersData, onRefresh, refreshing }: PastOrdersProps) => {
     <View className=" bg-gray-50 p-4">
       <FlatList
         data={OrdersData}
+        style={{ marginBottom: 50 }}
         renderItem={({ item }) => <OrderCard Order={item} />}
         keyExtractor={item => item.OrderId.toString()}
         contentContainerStyle={{ paddingBottom: 20 }}
