@@ -21,9 +21,13 @@ import {
   GetDay,
   GetTime,
 } from '../../utils/CustomFunctions/DateFunctions';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import Share from 'react-native-share';
+import FileViewer from 'react-native-file-viewer';
 import { API_URL } from '@env';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { updateOrderData } from '../../redux/slices/orderSlice';
+import { InvoiceTemplate } from '../../components/Report/PDF Templates/Download';
 const OrderDetailScreen = () => {
   const route = useRoute();
   const params = route.params as { Order: Order } | undefined;
@@ -136,6 +140,61 @@ const OrderDetailScreen = () => {
       );
     }
   };
+    // Function to open a file
+    const openFile = (path: string): void => {
+      FileViewer.open(path)
+        .then(() => {
+          console.log('Success', path);
+        })
+        .catch((error: unknown) => {
+          console.error('Error opening file:', error);
+        });
+    };
+    const ShareFile = (path: string): void => {
+      if (!path) {
+        console.error('File path is undefined or empty.');
+        return;
+      }
+  
+      Share.open({ url: `file://${path}` }) // Ensure the path is formatted correctly as a file URL
+        .then(res => {
+          console.log('Share successful:', res);
+        })
+        .catch(err => {
+          if (err) {
+            console.error('Error while sharing file:', err);
+          }
+        });
+    };
+  const handleDownloadInvoice = async () => {
+    try {
+      const fileName = `invoice_${Order.OrderId}.pdf`;
+
+      const options = {
+        html: InvoiceTemplate(Order),
+        fileName: fileName.replace('.pdf', ''),
+        base64: false,
+        directory: 'Download',
+      };
+
+      const file = await RNHTMLtoPDF.convert(options);
+
+      //Alert.alert('Success', `PDF generated at: ${file.filePath}`);
+      Alert.alert('Success', `Successfully PDF generated`, [
+        {
+          text: 'Open',
+          onPress: () => openFile(`${file.filePath}`),
+        },
+        {
+          text: 'Share',
+          onPress: () => ShareFile(`${file.filePath}`),
+        },
+      ]);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to generate or save the invoice.');
+    }
+  };
 
   return (
     <View className="flex-1 bg-white">
@@ -147,7 +206,7 @@ const OrderDetailScreen = () => {
         <Text className="text-white text-xl font-semibold">Order Details</Text>
         <TouchableOpacity
           className="p-3"
-          // onPress={handleDownloadInvoice}
+          onPress={handleDownloadInvoice}
         >
           <MaterialIcons name="receipt-long" size={24} color="#fff" />
         </TouchableOpacity>
