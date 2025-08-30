@@ -99,3 +99,32 @@ export const getNotifications = async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 };
+
+// get Profile
+export const getProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await BranchModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    const filteredUser = {
+      _id: user._id,
+      branchName: user.branchName,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      contactPerson: user.contactPerson,
+      location: user.location,
+      routeName: user.routeName,
+      registeredDate: user.registeredDate,
+      role: user.role,
+      type: user.type,
+    };
+    res.status(200).json(filteredUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
+};

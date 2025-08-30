@@ -3,8 +3,6 @@ import { Order, UpdateReceivedItems } from '../../@types/Order';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 
 interface OrderState {
     orders: Order[];
@@ -17,7 +15,7 @@ const initialState: OrderState = {
     loading: false,
     error: null,
 };
-const stackNav = useNavigation<StackNavigationProp<any>>();
+
 const getHeaders = async () => {
   const token = await AsyncStorage.getItem('token');
   return {
@@ -42,10 +40,9 @@ export const CreateOrder = createAsyncThunk<any, void, { rejectValue: string }>(
       console.log(error.response);
 
       if (!error.response){
-        stackNav.navigate('ServerDownScreen');
         return rejectWithValue('Network Error: Server unreachable.');
       }
-      return rejectWithValue(error.response.data?.msg || 'Create Order failed');
+      return rejectWithValue(error.response.data?.msg || error.response.data || 'Create Order failed');
     }
   },
 );
@@ -64,10 +61,10 @@ export const ReOrderData = createAsyncThunk<any, any, { rejectValue: string }>(
       return res.data;
     } catch (error: any) {
       if (!error.response){
-        stackNav.navigate('ServerDownScreen');
+
         return rejectWithValue('Network Error: Server unreachable.');
       }
-      return rejectWithValue(error.response.data?.msg || 'ReOrder failed');
+      return rejectWithValue(error.response.data?.msg || error.response.data || 'ReOrder failed');
     }
   },
 );
@@ -81,10 +78,11 @@ export const fetchOrder = createAsyncThunk<any, void, { rejectValue: string }>(
       return response.data;
     } catch (error: any) {
       if (!error.response) {
-        stackNav.navigate('ServerDownScreen');
+
       }
+      console.log('Error fetching orders:', error);
       return rejectWithValue(
-        error.response?.data?.msg || 'Failed to fetch Order data',
+        error.response?.data?.msg || error.response?.data || 'Failed to fetch Order data',
       );
     }
   },
@@ -109,10 +107,10 @@ export const updateOrderData = createAsyncThunk<
       return res.data;
     } catch (error: any) {
       if (!error.response) {
-        stackNav.navigate('ServerDownScreen');
+
         return rejectWithValue('Network Error: Server unreachable.');
       }
-      return rejectWithValue(error.response.data?.msg || 'Update Order failed');
+      return rejectWithValue(error.response.data?.msg || error.response.data || 'Update Order failed');
     }
   },
 );

@@ -5,15 +5,17 @@ import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
+interface Props {
+  onRetry?: () => void;
+}
 
-
-export default function ServerDownScreen() {
+export default function ServerDownScreen({ onRetry }: Props) {
     const navigation = useNavigation<StackNavigationProp<any>>();
   return (
     <View className="flex-1 bg-white items-center justify-center px-6">
       {/* Illustration / Icon (optional image) */}
       <Image
-        source={require("../assets/Images/Profile.png")} // Place your own illustration here
+        source={require("../assets/Images/ServerDown.png")} // Place your own illustration here
         className="w-52 h-52 mb-8"
         resizeMode="contain"
       />
@@ -31,7 +33,7 @@ export default function ServerDownScreen() {
 
       {/* Retry Button */}
       <TouchableOpacity
-        onPress={() => navigation.navigate("Drawer")}
+        onPress={onRetry}
         activeOpacity={0.85}
         className="flex-row items-center px-6 py-3 bg-blue-600 rounded-2xl shadow-md"
       >

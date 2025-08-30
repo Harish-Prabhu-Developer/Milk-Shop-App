@@ -3,8 +3,7 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '@env';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';
+
 // Define user type based on your JWT structure
 interface User {
   id: string;
@@ -17,7 +16,7 @@ interface AuthState {
   loading: boolean;
   error: string | null;
 }
-const stackNav = useNavigation<StackNavigationProp<any>>();
+
 // Async Thunk for login
 export const login = createAsyncThunk(
   'milkapp/auth/login',
@@ -33,7 +32,6 @@ export const login = createAsyncThunk(
 
       if (!error.response) {
         console.log('Network Error: Server unreachable.');
-        stackNav.navigate('ServerDownScreen');
         return rejectWithValue('Network Error: Server unreachable.');
       }
 
