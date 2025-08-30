@@ -155,10 +155,14 @@ const ProductScreen = () => {
 
       {/* Product List */}
       {isloading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#4B5563" />
-          <Text className="mt-2 text-gray-700">Loading products...</Text>
-        </View>
+          <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center bg-black/20 z-50">
+            <View className="bg-white rounded-2xl px-6 py-6 items-center shadow-lg">
+              <ActivityIndicator size="large" color="#3B82F6" />
+              <Text className="text-gray-700 text-lg font-semibold mt-3">
+                Loading Products...
+              </Text>
+            </View>
+          </View>
       ) : (
         <FlatList
           data={products}

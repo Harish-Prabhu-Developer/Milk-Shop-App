@@ -137,13 +137,14 @@ const handleExportCSV = async () => {
   };
 
   // ---------------- RENDER ----------------
-  if (loading)
+  if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text className="mt-2 text-gray-600">Loading Reports...</Text>
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text className="mt-2 text-gray-600">Fetching products...</Text>
       </View>
     );
+  }
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -154,83 +155,96 @@ const handleExportCSV = async () => {
       />
 
       {/* Product List */}
-      <ScrollView className="p-4">
-        {filteredData.map(p => (
-          <View
-            key={p._id}
-            className="bg-white rounded-3xl shadow-lg mb-5 border border-gray-100 overflow-hidden"
-          >
-            <View className="flex-row items-start p-4">
-              {/* Product Image */}
-              <View className="w-24 h-24 bg-gray-100 rounded-2xl mr-4 justify-center items-center">
-                {p.image ? (
-                  <Image
-                    source={{ uri: `${API_URL}/${p.image.replace(/\\/g, "/")}` }}
-                    className="w-24 h-24 rounded-2xl"
-                  />
-                ) : (
-                  <Text className="text-gray-400 text-xs">No Image</Text>
-                )}
-              </View>
-
-              {/* Product Info */}
-              <View className="flex-1">
-                <View className="flex-row justify-between items-center mb-1">
-                  <Text className="text-lg font-semibold text-gray-900">
-                    {p.name}
-                  </Text>
-                  <Text className="text-lg font-bold text-primary">
-                    ₹{p.price}
-                  </Text>
+      <ScrollView className="p-4 flex-1">
+        {filteredData.length === 0 ? (
+          <View className="flex-1 items-center justify-center py-20">
+            <Text className="text-gray-500 text-base font-medium">
+              No products found
+            </Text>
+            <Text className="text-gray-400 text-sm mt-1">
+              Try adjusting your filters
+            </Text>
+          </View>
+        ) : (
+          filteredData.map((p) => (
+            <View
+              key={p._id}
+              className="bg-white rounded-3xl shadow-lg mb-5 border border-gray-100 overflow-hidden"
+            >
+              <View className="flex-row items-start p-4">
+                {/* Product Image */}
+                <View className="w-24 h-24 bg-gray-100 rounded-2xl mr-4 justify-center items-center">
+                  {p.image ? (
+                    <Image
+                      source={{ uri: `${API_URL}/${p.image.replace(/\\/g, "/")}` }}
+                      className="w-24 h-24 rounded-2xl"
+                    />
+                  ) : (
+                    <Text className="text-gray-400 text-xs">No Image</Text>
+                  )}
                 </View>
 
-                <View className="flex-row items-center mb-2">
-                  <Text className="text-gray-500 text-sm mr-3">{p.unit}</Text>
-                  <View className="bg-blue-100 px-2 py-0.5 rounded-full">
-                    <Text className="text-blue-700 text-xs font-medium">
-                      {p.category}
+                {/* Product Info */}
+                <View className="flex-1">
+                  <View className="flex-row justify-between items-center mb-1">
+                    <Text className="text-lg font-semibold text-gray-900">
+                      {p.name}
+                    </Text>
+                    <Text className="text-lg font-bold text-primary">
+                      ₹{p.price}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-center mb-2">
+                    <Text className="text-gray-500 text-sm mr-3">{p.unit}</Text>
+                    <View className="bg-blue-100 px-2 py-0.5 rounded-full">
+                      <Text className="text-blue-700 text-xs font-medium">
+                        {p.category}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {!!p.description && (
+                    <Text className="text-gray-600 text-sm mb-2" numberOfLines={2}>
+                      {p.description}
+                    </Text>
+                  )}
+
+                  {!!p.nutrition && (
+                    <Text className="text-gray-500 text-xs mb-1" numberOfLines={2}>
+                      Nutrition: {p.nutrition}
+                    </Text>
+                  )}
+
+                  <View
+                    className={`px-3 py-1 mt-2 self-end rounded-full ${
+                      p.isActive ? "bg-green-100" : "bg-red-100"
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-medium ${
+                        p.isActive ? "text-green-700" : "text-red-700"
+                      }`}
+                    >
+                      {p.isActive ? "Active" : "Inactive"}
                     </Text>
                   </View>
                 </View>
-
-                {!!p.description && (
-                  <Text className="text-gray-600 text-sm mb-2" numberOfLines={2}>
-                    {p.description}
-                  </Text>
-                )}
-
-                {!!p.nutrition && (
-                  <Text className="text-gray-500 text-xs mb-1" numberOfLines={2}>
-                    Nutrition: {p.nutrition}
-                  </Text>
-                )}
-
-                <View
-                  className={`px-3 py-1 mt-2 self-end rounded-full ${
-                    p.isActive ? "bg-green-100" : "bg-red-100"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-medium ${
-                      p.isActive ? "text-green-700" : "text-red-700"
-                    }`}
-                  >
-                    {p.isActive ? "Active" : "Inactive"}
-                  </Text>
-                </View>
               </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </ScrollView>
 
       {/* Export Buttons */}
-      <ExportButton
-        data={filteredData}
-        onExportCSV={handleExportCSV}
-        onExportExcel={handleExportExcel}
-        onExportPDF={handleExportPDF}
-      />
+      {filteredData.length > 0 && (
+        <ExportButton
+          data={filteredData}
+          onExportCSV={handleExportCSV}
+          onExportExcel={handleExportExcel}
+          onExportPDF={handleExportPDF}
+        />
+      )}
 
       {/* Filter Modal */}
       <Modal visible={filterModal} animationType="slide" transparent={true}>
@@ -244,4 +258,5 @@ const handleExportCSV = async () => {
       </Modal>
     </View>
   );
+
 }

@@ -148,15 +148,7 @@ const LoginScreen = () => {
   };
 
 
-    if (loading) {
-      return(
-           <View className='flex-1 items-center bg-black/45  justify-center'>
-              <ActivityIndicator size="large" color={'#3D8BFD'}  />
-              <Text className='text-white text-lg font-bold my-1'>Loading...</Text>
-          </View>
-        
-      );
-    };
+    
 
 
   return (
@@ -165,8 +157,13 @@ const LoginScreen = () => {
       className="flex-1 bg-background"
     >
       <StatusBar barStyle="dark-content" />
-
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+            {loading && (
+              <View className="absolute top-0 left-0 right-0 bottom-0 flex-row gap-4 items-center justify-center bg-black/45 z-50">
+                <ActivityIndicator size="large" color="red" />
+                <Text className="text-white text-lg font-bold my-1">Loading...</Text>
+              </View>
+            )}
         <View className="flex-1 justify-center px-2 py-2">
           {/* Animated Logo */}
         <Animated.View style={logoAnimatedStyle} className="items-center mb-8">

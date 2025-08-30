@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
+  Platform,
 } from 'react-native';
 import ReportHeader from '../../components/Report/Header/ReportHeader';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -18,8 +19,9 @@ import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import DeliveryFilterForm from '../../components/Report/Delivery/DeliveryFilterForm';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { DeliveryPDFTemplate } from '../../components/Report/PDF Templates/DeilveryReportPDF';
+
 import { formatDate } from '../../utils/CustomFunctions/DateFunctions';
+import { DeliveryPDFTemplate } from '../../components/Report/PDF Templates/DeilveryReportPDF';
 
 const DeliveryReport = () => {
   const [filteredData, setFilteredData] = useState<any[]>([]);
@@ -29,7 +31,7 @@ const DeliveryReport = () => {
 
   const StatusColors: { [key: string]: string } = {
     Delivered: '#4caf50',
-    Processing: '#2196f3', // ✅ fixed
+    Processing: '#2196f3',
     Pending: '#ff9800',
     Cancelled: '#f44336',
   };
@@ -39,9 +41,9 @@ const DeliveryReport = () => {
       case 'Delivered':
         return 'check-circle';
       case 'Pending':
-        return 'schedule'; // ✅ valid
+        return 'schedule';
       case 'Processing':
-        return 'hourglass-empty'; // ✅ valid
+        return 'hourglass-empty';
       case 'Cancelled':
         return 'cancel';
       default:
@@ -65,6 +67,11 @@ const DeliveryReport = () => {
     }
   };
 
+  const downloadDir =
+    Platform.OS === 'android'
+      ? RNFS.DownloadDirectoryPath
+      : RNFS.DocumentDirectoryPath;
+
   /** ------------------------------
    * Export Functions
    * ------------------------------ */
@@ -72,27 +79,30 @@ const DeliveryReport = () => {
     try {
       const exportData = filteredData.length > 0 ? filteredData : deliveries;
       if (exportData.length === 0) return Alert.alert('No data to export');
+
       const cleanRows = exportData.map((r: any) => ({
-        "Branch Name": r.branchName,
+        'Branch Name': r.branchName,
         RouteGroup: r.routeGroup,
         VehicleType: r.vehicleType,
         location: r.location,
-        distance:r.distance,
-        "Order ID": r.orderId,
-        "Status": r.orderStatus,
-        "Total Amount": r.totalAmount,
+        distance: r.distance,
+        'Order ID': r.orderId,
+        Status: r.orderStatus,
+        'Total Amount': r.totalAmount,
       }));
       const ws = XLSX.utils.json_to_sheet(cleanRows);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Delivery');
       const wbout = XLSX.write(wb, { type: 'base64', bookType: 'csv' });
 
-      const path = `${RNFS.DownloadDirectoryPath}/delivery-${formatDate(new Date().toISOString())}.csv`;
+      const path = `${downloadDir}/delivery-${formatDate(
+        new Date().toISOString(),
+      )}.csv`;
 
       await RNFS.writeFile(path, wbout, 'base64');
 
       await Share.open({
-        url: `file://${path}`, // ✅ important for Android
+        url: `file://${path}`,
         type: 'text/csv',
       });
     } catch (err) {
@@ -105,28 +115,30 @@ const DeliveryReport = () => {
     try {
       const exportData = filteredData.length > 0 ? filteredData : deliveries;
       if (exportData.length === 0) return Alert.alert('No data to export');
+
       const cleanRows = exportData.map((r: any) => ({
-        "Branch Name": r.branchName,
+        'Branch Name': r.branchName,
         RouteGroup: r.routeGroup,
         VehicleType: r.vehicleType,
         location: r.location,
-        distance:r.distance,
-        "Order ID": r.orderId,
-        "Status": r.orderStatus,
-        "Total Amount": r.totalAmount,
+        distance: r.distance,
+        'Order ID': r.orderId,
+        Status: r.orderStatus,
+        'Total Amount': r.totalAmount,
       }));
       const ws = XLSX.utils.json_to_sheet(cleanRows);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Delivery');
       const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
 
-      // ✅ Save to Download directory (shareable)
-      const path = `${RNFS.DownloadDirectoryPath}/delivery-${formatDate(new Date().toISOString())}.xlsx`;
+      const path = `${downloadDir}/delivery-${formatDate(
+        new Date().toISOString(),
+      )}.xlsx`;
 
       await RNFS.writeFile(path, wbout, 'base64');
 
       await Share.open({
-        url: `file://${path}`, // ✅ ensure correct prefix
+        url: `file://${path}`,
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
     } catch (err) {
@@ -142,9 +154,13 @@ const DeliveryReport = () => {
 
       const file = await RNHTMLtoPDF.convert({
         html: DeliveryPDFTemplate(exportData),
-        fileName: `Deilvery_Report-${formatDate(new Date().toISOString())}`,
+        fileName: `Delivery_Report-${formatDate(new Date().toISOString())}`,
         base64: true,
       });
+
+      if (!file.filePath) {
+        return Alert.alert('Error', 'PDF file could not be generated');
+      }
 
       await Share.open({ url: `file://${file.filePath}` });
     } catch (err) {
@@ -153,123 +169,154 @@ const DeliveryReport = () => {
     }
   };
 
-  if (loading)
+  /** ------------------------------
+   * Render
+   * ------------------------------ */
+  if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text className="mt-2 text-gray-600">Loading Reports...</Text>
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text className="mt-3 text-gray-600 font-semibold">
+          Fetching Delivery Reports...
+        </Text>
       </View>
     );
+  }
 
   return (
     <View className="flex-1 bg-gray-50">
+      {/* Header */}
       <ReportHeader
         title="Delivery Report"
         onFilterPress={() => setFilterModal(true)}
       />
 
       <ScrollView className="p-4">
-        {(filteredData.length > 0 ? filteredData : deliveries).map((d,index) => (
-          <View
-            key={index||d._id}
-            className="bg-white rounded-3xl mb-6 shadow-lg border border-gray-300 overflow-hidden"
-          >
-            <LinearGradient
-              colors={['#3D8BFD', '#2563eb']}
-              className="px-4 py-3 flex-row justify-between items-center"
-            >
-              <Text className="text-white font-bold text-lg tracking-wide">
-                {d.routeGroup}
-              </Text>
-              <View className="bg-white/90 px-3 py-1 rounded-full shadow-sm">
-                <Text className="text-blue-700 text-xs font-semibold">
-                  {d.vehicleType}
-                </Text>
-              </View>
-            </LinearGradient>
-
-            <View className="p-5 space-y-5">
-              {/* Location */}
-              <View className="flex-row items-center">
-                <View className="bg-blue-100 p-2 rounded-full shadow-sm">
-                  <Icon name="location-on" size={20} color="#2563eb" />
-                </View>
-                <Text className="ml-3 text-gray-800 text-sm font-medium">
-                  {d.location}
-                </Text>
-              </View>
-
-              {/* Distance */}
-              <View className="flex-row items-center">
-                <View className="bg-gray-100 p-2 rounded-full shadow-sm">
-                  <Icon name="map" size={20} color="#6b7280" />
-                </View>
-                <Text className="ml-3 text-gray-600 text-sm">
-                  Distance:{' '}
-                  <Text className="font-semibold text-gray-800">
-                    {d.distance}
-                  </Text>
-                </Text>
-              </View>
-
-              {/* Branch */}
-              <View className="flex-row items-center">
-                <View className="bg-gray-100 p-2 rounded-full shadow-sm">
-                  <Icon name="apartment" size={20} color="#374151" />
-                </View>
-                <Text className="ml-3 text-gray-700 text-sm">
-                  Branch:{' '}
-                  <Text className="font-semibold text-gray-900">
-                    {d.branchName}
-                  </Text>
-                </Text>
-              </View>
-
-              <View className="h-[1px] bg-gray-200 my-2" />
-
-              {/* Order Info */}
-              <View className="flex-row justify-between items-center">
-                <View>
-                  <View className="flex-row items-center mb-2">
-                    <Icon name="receipt" size={18} color="#374151" />
-                    <Text className="ml-2 text-gray-800 text-sm">
-                      Order ID:{' '}
-                      <Text className="font-semibold">{d.orderId}</Text>
-                    </Text>
-                  </View>
-
-                  <View className="flex-row items-center px-3 py-1 rounded-lg shadow-sm">
-                    <Icon name="currency-rupee" size={16} color="#15803d" />
-                    <Text className="ml-1 text-green-800 text-sm font-bold">
-                      ₹{d.totalAmount}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Status */}
-                <View className="flex-row items-center px-4 py-1 rounded-full shadow-sm bg-gray-50">
-                  <Icon
-                    name={getStatusIcon(d.orderStatus)}
-                    size={18}
-                    color={StatusColors[d.orderStatus] || '#6b7280'}
-                  />
-                  <Text className="ml-2 text-xs font-bold text-gray-800">
-                    {d.orderStatus}
-                  </Text>
-                </View>
-              </View>
-            </View>
+        {deliveries.length === 0 ? (
+          <View className="flex-1 items-center justify-center mt-20">
+            <Icon name="local-shipping" size={50} color="#9CA3AF" />
+            <Text className="text-gray-500 text-lg mt-3">
+              No Deliveries Found
+            </Text>
           </View>
-        ))}
+        ) : (
+          (filteredData.length > 0 ? filteredData : deliveries).map(
+            (d, index) => (
+              <View
+                key={d._id || index}
+                className="bg-white rounded-3xl mb-6 shadow-lg border border-gray-300 overflow-hidden"
+              >
+                <LinearGradient
+                  colors={['#3D8BFD', '#2563eb']}
+                  className="px-4 py-3 flex-row justify-between items-center"
+                >
+                  <Text
+                    className="text-white font-bold text-lg tracking-wide"
+                    numberOfLines={1}
+                  >
+                    {d.routeGroup}
+                  </Text>
+                  <View className="bg-white/90 px-3 py-1 rounded-full shadow-sm">
+                    <Text className="text-blue-700 text-xs font-semibold">
+                      {d.vehicleType}
+                    </Text>
+                  </View>
+                </LinearGradient>
+
+                <View className="p-5 space-y-5">
+                  {/* Location */}
+                  <View className="flex-row items-center">
+                    <View className="bg-blue-100 p-2 rounded-full shadow-sm">
+                      <Icon name="location-on" size={20} color="#2563eb" />
+                    </View>
+                    <Text
+                      className="ml-3 text-gray-800 text-sm font-medium"
+                      numberOfLines={1}
+                    >
+                      {d.location}
+                    </Text>
+                  </View>
+
+                  {/* Distance */}
+                  <View className="flex-row items-center">
+                    <View className="bg-gray-100 p-2 rounded-full shadow-sm">
+                      <Icon name="map" size={20} color="#6b7280" />
+                    </View>
+                    <Text className="ml-3 text-gray-600 text-sm">
+                      Distance:{' '}
+                      <Text className="font-semibold text-gray-800">
+                        {d.distance}
+                      </Text>
+                    </Text>
+                  </View>
+
+                  {/* Branch */}
+                  <View className="flex-row items-center">
+                    <View className="bg-gray-100 p-2 rounded-full shadow-sm">
+                      <Icon name="apartment" size={20} color="#374151" />
+                    </View>
+                    <Text
+                      className="ml-3 text-gray-700 text-sm"
+                      numberOfLines={1}
+                    >
+                      Branch:{' '}
+                      <Text className="font-semibold text-gray-900">
+                        {d.branchName}
+                      </Text>
+                    </Text>
+                  </View>
+
+                  <View className="h-[1px] bg-gray-200 my-2" />
+
+                  {/* Order Info */}
+                  <View className="flex-row justify-between items-center">
+                    <View>
+                      <View className="flex-row items-center mb-2">
+                        <Icon name="receipt" size={18} color="#374151" />
+                        <Text className="ml-2 text-gray-800 text-sm">
+                          Order ID:{' '}
+                          <Text className="font-semibold">{d.orderId}</Text>
+                        </Text>
+                      </View>
+
+                      <View className="flex-row items-center px-3 py-1 rounded-lg shadow-sm">
+                        <Icon name="currency-rupee" size={16} color="#15803d" />
+                        <Text className="ml-1 text-green-800 text-sm font-bold">
+                          ₹{d.totalAmount}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Status */}
+                    <View className="flex-row  items-center px-1 py-2 rounded-full shadow-sm bg-gray-50">
+                      <Icon
+                        name={getStatusIcon(d.orderStatus)}
+                        size={18}
+                        color={StatusColors[d.orderStatus] || '#6b7280'}
+                      />
+                      <Text className="ml-2 text-xs font-bold text-gray-800">
+                        {d.orderStatus}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            ),
+          )
+        )}
       </ScrollView>
 
-      <ExportButton
-        data={filteredData.length > 0 ? filteredData : deliveries}
-        onExportCSV={handleExportCSV}
-        onExportExcel={handleExportExcel}
-        onExportPDF={handleExportPDF}
-      />
+      {/* Export Buttons */}
+      {deliveries.length > 0 && (
+        <ExportButton
+          data={filteredData.length > 0 ? filteredData : deliveries}
+          onExportCSV={handleExportCSV}
+          onExportExcel={handleExportExcel}
+          onExportPDF={handleExportPDF}
+        />
+      )}
 
+      {/* Filter Modal */}
       <Modal visible={filterModal} animationType="slide" transparent={true}>
         <View className="flex-1 bg-black/50 justify-end">
           <DeliveryFilterForm

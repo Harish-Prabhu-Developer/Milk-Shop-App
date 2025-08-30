@@ -18,6 +18,7 @@ import SalesReport from './screens/Reports/SalesReport';
 import CustomerReport from './screens/Reports/CustomerReport';
 import ProductReport from './screens/Reports/ProductReport';
 import DeliveryReport from './screens/Reports/DeliveryReport';
+import ServerDownScreen from './screens/ServerDownScreen';
 
 type RootStackParamList = {
   LoginScreen: undefined;
@@ -27,6 +28,7 @@ type RootStackParamList = {
   DeliveryReport:undefined;
   ProductReport:undefined;
   CustomerReport:undefined;
+  ServerDownScreen:undefined;
   ProductDetailScreen: { Product: Product };
   OrderDetailScreen: { Order: Order };
 };
@@ -95,6 +97,8 @@ const App = () => {
             <Stack.Screen name="ProductReport" component={ProductReport} />
             {/* DeliveryReport */}
             <Stack.Screen name="DeliveryReport" component={DeliveryReport} />
+            {/* ServerDownScreen */}
+            <Stack.Screen name="ServerDownScreen" component={ServerDownScreen} />
           </Stack.Navigator>
         )}
       </NavigationContainer>

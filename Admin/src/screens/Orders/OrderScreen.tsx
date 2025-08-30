@@ -7,6 +7,7 @@ import {
   RefreshControl,
   FlatList,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -28,7 +29,11 @@ import {
 
 const OrderScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const [isloading, setIsLoading] = useState(false);
+  const OrderData: Order[] = useSelector(
+    (state: RootState) => state.order.orders,
+  );
+  const { loading, error } = useSelector((state: RootState) => state.order);
+  const [isloading, setIsLoading] = useState(loading);
   const [refreshing, setRefreshing] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,14 +42,11 @@ const OrderScreen = () => {
   const [dateFilter, setDateFilter] = useState<string | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
-  const OrderData: Order[] = useSelector(
-    (state: RootState) => state.order.orders,
-  );
 
   const fetchOrdersData = async () => {
     try {
       await dispatch(fetchOrder());
-      await new Promise(resolve => setTimeout(resolve, 1000)); // simulate delay
+      await new Promise(resolve => setTimeout(resolve, 200)); // simulate delay
     } catch (error) {
       console.log('Error fetching Orders:', error);
     }
@@ -119,26 +121,31 @@ const OrderScreen = () => {
   const renderFlatList = (OrdersType: Order[], EmptyMSG: string) => {
     return (
       <>
-        {isloading ? (
-          <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-500">Loading...</Text>
+        {isloading && (
+          <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center bg-black/20 z-50">
+            <View className="bg-white rounded-2xl px-6 py-6 items-center shadow-lg">
+              <ActivityIndicator size="large" color="#3B82F6" />
+              <Text className="text-gray-700 text-lg font-semibold mt-3">
+                Loading Orders...
+              </Text>
+            </View>
           </View>
-        ) : (
-          <FlatList
-            data={OrdersType}
-            renderItem={({ item }) => <OrderCard Order={item} />}
-            keyExtractor={item => item.OrderId.toString()}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListEmptyComponent={
-              <View className="flex-1 justify-center items-center">
-                <Text className="text-gray-500">{EmptyMSG}</Text>
-              </View>
-            }
-          />
         )}
+
+        <FlatList
+          data={OrdersType}
+          renderItem={({ item }) => <OrderCard Order={item} />}
+          keyExtractor={item => item.OrderId.toString()}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            <View className="flex-1 justify-center items-center">
+              <Text className="text-gray-500">{EmptyMSG}</Text>
+            </View>
+          }
+        />
       </>
     );
   };
@@ -171,10 +178,7 @@ const OrderScreen = () => {
           'In Progress Orders',
           'Completed Orders',
           'Cancelled Orders',
-
         ]}
-
-       
       >
         {/* All */}
         <View className="bg-gray-50 p-4">

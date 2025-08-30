@@ -105,10 +105,14 @@ const UserScreen = () => {
     <View className="flex-1 bg-white">
       <Header title={'Users'} />
       {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#4B5563" />
-          <Text className="mt-2 text-gray-700">Loading Users...</Text>
-        </View>
+          <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center bg-black/20 z-50">
+            <View className="bg-white rounded-2xl px-6 py-6 items-center shadow-lg">
+              <ActivityIndicator size="large" color="#3B82F6" />
+              <Text className="text-gray-700 text-lg font-semibold mt-3">
+                Loading Branchs...
+              </Text>
+            </View>
+          </View>
       ) : BranchData.length <= 0 ? (
         <View className="flex-1 items-center justify-center">
           <Text className="mt-2 text-gray-700">No Users Found</Text>

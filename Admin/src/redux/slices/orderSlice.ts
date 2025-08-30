@@ -3,6 +3,8 @@ import { Order, UpdateReceivedItems } from '../../@types/Order';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_URL } from '@env';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 interface OrderState {
     orders: Order[];
@@ -15,7 +17,7 @@ const initialState: OrderState = {
     loading: false,
     error: null,
 };
-
+const stackNav = useNavigation<StackNavigationProp<any>>();
 const getHeaders = async () => {
   const token = await AsyncStorage.getItem('token');
   return {
@@ -39,8 +41,10 @@ export const CreateOrder = createAsyncThunk<any, void, { rejectValue: string }>(
     } catch (error: any) {
       console.log(error.response);
 
-      if (!error.response)
+      if (!error.response){
+        stackNav.navigate('ServerDownScreen');
         return rejectWithValue('Network Error: Server unreachable.');
+      }
       return rejectWithValue(error.response.data?.msg || 'Create Order failed');
     }
   },
@@ -59,8 +63,10 @@ export const ReOrderData = createAsyncThunk<any, any, { rejectValue: string }>(
       console.log('ReOrder Response:', res.data);
       return res.data;
     } catch (error: any) {
-      if (!error.response)
+      if (!error.response){
+        stackNav.navigate('ServerDownScreen');
         return rejectWithValue('Network Error: Server unreachable.');
+      }
       return rejectWithValue(error.response.data?.msg || 'ReOrder failed');
     }
   },
@@ -74,6 +80,9 @@ export const fetchOrder = createAsyncThunk<any, void, { rejectValue: string }>(
       const response = await axios.get(`${API_URL}/milkapp/order/`, headers);
       return response.data;
     } catch (error: any) {
+      if (!error.response) {
+        stackNav.navigate('ServerDownScreen');
+      }
       return rejectWithValue(
         error.response?.data?.msg || 'Failed to fetch Order data',
       );
@@ -99,8 +108,10 @@ export const updateOrderData = createAsyncThunk<
       console.log('Update Order Response:', res.data);
       return res.data;
     } catch (error: any) {
-      if (!error.response)
+      if (!error.response) {
+        stackNav.navigate('ServerDownScreen');
         return rejectWithValue('Network Error: Server unreachable.');
+      }
       return rejectWithValue(error.response.data?.msg || 'Update Order failed');
     }
   },

@@ -16,6 +16,7 @@ import { Product } from '../../@types/Product';
 import DropDownPicker from 'react-native-dropdown-picker';
 import {launchImageLibrary, launchCamera, ImageLibraryOptions} from 'react-native-image-picker';
 import { API_URL } from '@env';
+
 interface ProductFormProps {
   onClose: () => void;
   onSubmit: (product: Product) => void;
@@ -122,6 +123,8 @@ const openCamera = () => {
  
   
   useEffect(() => {
+    console.log("API ",API_URL);
+    
     if (initialValues) {
       setProduct({
         _id: initialValues._id || '',
@@ -225,10 +228,14 @@ const handleSubmit = () => {
           activeOpacity={0.8}
           className="items-center justify-center h-[180px] w-[60%] bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg my-4 self-center"
         >
-          {typeof product.image === 'string' && product.image.trim() !== '' ? (
+          {product.image && product.image.trim() !== "" ? (
             <Image
-              source={{ uri: `${API_URL}/${product.image}` }}
-              className="w-full h-full rounded-md"
+              source={{
+                uri: product.image.startsWith("file://") || product.image.startsWith("ph://")
+                  ? product.image // local image
+                  : `${API_URL}/${product.image}` // server image
+              }}
+              className="w-full h-full rounded-lg bg-gray-200" // image itself has fallback background
               resizeMode="cover"
             />
           ) : (
@@ -236,8 +243,8 @@ const handleSubmit = () => {
               <Text className="text-gray-500 text-sm">Tap to upload image</Text>
             </View>
           )}
-
         </TouchableOpacity>
+
 
         {/* Product Name */}
         <Text className="text-lg font-bold text-gray-800 py-4">Product Name</Text>
