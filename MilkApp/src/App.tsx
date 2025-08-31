@@ -21,7 +21,7 @@ import {
 } from '@Utils/PermissionFunctions/Permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Notifications from './Screens/Notifications';
-
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 type RootStackParamList = {
   LoginScreen: undefined;
   RegisterScreen: undefined;
@@ -71,7 +71,8 @@ const App = () => {
 
   return (
     <Provider store={Store}>
-      <NavigationContainer>
+      <SafeAreaProvider>
+                <NavigationContainer>
         {showSplash ? (
           <SplashScreen />
         ) : (
@@ -96,6 +97,7 @@ const App = () => {
           </Stack.Navigator>
         )}
       </NavigationContainer>
+      </SafeAreaProvider>
     </Provider>
   );
 };

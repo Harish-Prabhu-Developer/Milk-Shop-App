@@ -1,10 +1,14 @@
+import { fetchProfile } from '@Redux/Auth/authSlice';
+import { AppDispatch, RootState } from '@Redux/Store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { jwtDecode } from 'jwt-decode';
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { StatusBar } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch, useSelector } from 'react-redux';
 
 const ProfileScreen = () => {
   const [UserData, setUserData] = useState({
@@ -40,6 +44,13 @@ const ProfileScreen = () => {
     };
     getName();
   }, []); // ✅ Only run once
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { branch, loading } = useSelector((state: RootState) => state.auth); // ✅ get loading + branch
+
+  useEffect(() => {
+    dispatch(fetchProfile());
+  }, [dispatch]);
 
   const navigation = useNavigation<StackNavigationProp<any>>();
 
@@ -51,6 +62,15 @@ const ProfileScreen = () => {
 
   return (
     <View className="flex-1 bg-primary">
+      {/* ✅ Loading Overlay */}
+      {!branch && (
+        <View className="absolute top-0 left-0 right-0 bottom-0 flex-row gap-4 items-center justify-center bg-black/40 z-50">
+          <ActivityIndicator size="large" color="#3D8BFD" />
+          <Text className="text-white text-lg font-bold mt-2">Loading...</Text>
+        </View>
+      )}      
+
+      <StatusBar barStyle="light-content" backgroundColor="#3D8BFD" />
       {/* Header */}
       <View className="bg-primary pt-14 pb-6 px-6">
         <Text className="text-3xl font-bold text-white">Profile</Text>
@@ -65,9 +85,9 @@ const ProfileScreen = () => {
             resizeMode="cover"
           />
         </View>
-        <Text className="text-xl text-white font-semibold mt-4">{UserData.name}</Text>
-        <Text className="text-white mt-1">{UserData.phone}</Text>
-        <Text className="text-white mt-1">{UserData.email}</Text>
+        <Text className="text-xl text-white font-semibold mt-4">{branch?.branchName||UserData.name}</Text>
+        <Text className="text-white mt-1">{branch?.phone || UserData.phone}</Text>
+        <Text className="text-white mt-1">{branch?.email || UserData.email}</Text>
       </View>
 
       {/* Main Content */}

@@ -50,7 +50,7 @@ export const registerBranch = async (req, res) => {
 
 // Login using email and password
 export const loginBranch = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, fcmToken } = req.body;
 
   try {
     // Find the branch by email
@@ -64,6 +64,11 @@ export const loginBranch = async (req, res) => {
       return res
         .status(400)
         .json({ status: "fail", msg: "Invalid credentials" });
+    }
+    // 🔹 Optionally save/update fcmToken in DB
+    if (fcmToken) {
+      branch.fcmToken = fcmToken;
+      await branch.save();
     }
     // Generate a JWT token
     const token = generateToken({

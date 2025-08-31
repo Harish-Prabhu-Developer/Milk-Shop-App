@@ -22,6 +22,7 @@ import { fetchProducts } from '@Redux/Product/ProductSlice';
 import { Product } from '@Utils/@types/Products';
 import { AddToCart, CartProduct } from '@Utils/@types/Cart';
 import { addToCart } from '@Redux/Cart/CartSlice';
+import { fetchProfile } from '@Redux/Auth/authSlice';
 
 const HomeScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -75,6 +76,7 @@ const productsData: Product[] = useSelector(
   
   useEffect(() => {
     fetchProductsData();
+    dispatch(fetchProfile());
   }, []);
   // This effect can be used to fetch products data when the component mounts
   const onRefresh = useCallback(async () => {

@@ -33,8 +33,8 @@ const LoginScreen = () => {
   const [passError, setPassError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const navigation = useNavigation<StackNavigationProp<any>>(); // Assuming you have set up navigation
-  const dispatch=useDispatch<AppDispatch>();
-  const {loading,error}=useSelector((state:RootState)=>state.auth)
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error } = useSelector((state: RootState) => state.auth);
   // Animations
   const logoScale = useSharedValue(0);
   const logoOpacity = useSharedValue(0);
@@ -124,20 +124,20 @@ const LoginScreen = () => {
     }
 
     if (valid) {
-      console.log('Login Data:', { email, password, rememberMe });
-      const credentials: { email: string; password: string } = {
-        email: email,
-        password: password,
-      };
+      const fcmToken = await AsyncStorage.getItem('fcmToken'); // 🔹 Retrieve token
+      console.log('Login Data:', { email, password, rememberMe, fcmToken  });
+    const credentials: { email: string; password: string; fcmToken?: string } = {
+      email,
+      password,
+      ...(fcmToken ? { fcmToken } : {}), // 🔹 Only include if available
+    };
       console.log('Logging in with', credentials);
-      const res= await dispatch(login(credentials)).unwrap();
-      console.log("Login Response:", res.msg);
-      if (res.msg ==='Login successful') {
-       navigation.navigate('TabBar'); // Navigate to TabBar after login 
+      const res = await dispatch(login(credentials)).unwrap();
+      console.log('Login Response:', res.msg);
+      if (res.msg === 'Login successful') {
+        navigation.navigate('TabBar'); // Navigate to TabBar after login
       }
-       
     }
-
 
     try {
       if (rememberMe) {
@@ -152,17 +152,6 @@ const LoginScreen = () => {
     }
   };
 
-
-    if (loading) {
-      return(
-           <View className='flex-1 items-center bg-black/45  justify-center'>
-              <ActivityIndicator size="large" color={'#3D8BFD'}  />
-              <Text className='text-white text-lg font-bold my-1'>Loading...</Text>
-          </View>
-        
-      );
-    };
-
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-background"
@@ -172,6 +161,14 @@ const LoginScreen = () => {
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
+        {loading && (
+          <View className="absolute top-0 left-0 right-0 bottom-0 flex-row gap-4 items-center justify-center bg-black/45 z-50">
+            <ActivityIndicator size="large" color="#3D8BFD" />
+            <Text className="text-white text-lg font-bold my-1">
+              Loading...
+            </Text>
+          </View>
+        )}
         <View
           className="flex-1 justify-center px-6 py-4"
           style={{ paddingTop: 80, paddingBottom: 40, paddingHorizontal: 24 }}
@@ -257,10 +254,10 @@ const LoginScreen = () => {
               </TouchableOpacity>
             </View>
             {error ? (
-                <Text className="text-red-600 text-md text-center font-semibold my-4">
-                  {error}
-                </Text>
-              ) : null}
+              <Text className="text-red-600 text-md text-center font-semibold my-4">
+                {error}
+              </Text>
+            ) : null}
             {/* Login Button */}
             <TouchableOpacity
               className="bg-primary rounded-xl py-4 mb-8"

@@ -1,3 +1,5 @@
+// Permissions.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import { Linking, PermissionsAndroid, Platform } from 'react-native';
 
@@ -27,6 +29,7 @@ export async function requestPushNotificationPermission() {
       console.log('Authorization status:', authStatus);
       await messaging().registerDeviceForRemoteMessages();
       const token = await messaging().getToken();
+       await AsyncStorage.setItem('fcmToken', token);
       console.log('FCM Token:', token);
     } else {
       console.log('Firebase messaging permission denied');

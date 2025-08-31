@@ -37,6 +37,7 @@ const branchSchema = new mongoose.Schema({
         enum: ["NKC Local", "NKC OUT", "AKC Local", "AKC OUT"],
         default: "NKC Local",
     },
+    fcmToken: { type: String, default: null } // 🔹 optional
 },
 {
     timestamps: true, // Automatically manage createdAt and updatedAt fields

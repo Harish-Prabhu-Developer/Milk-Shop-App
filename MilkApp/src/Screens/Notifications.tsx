@@ -77,16 +77,6 @@ const Notifications = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-gray-50">
-        <ActivityIndicator size="large" color="#2563eb" />
-        <Text className="mt-4 text-gray-500 font-medium">
-          Loading notifications...
-        </Text>
-      </View>
-    );
-  }
 
   if (notifications.length === 0) {
     return (
@@ -100,7 +90,14 @@ const Notifications = () => {
   return (
     <View className="flex-1 bg-gray-50">
       <StatusBar barStyle={"light-content"} backgroundColor="#2563eb" />
-
+      {loading && (
+        <View className="absolute top-0 left-0 right-0 bottom-0 flex-row gap-4 items-center justify-center bg-black/45 z-50">
+          <ActivityIndicator size="large" color="#3D8BFD" />
+          <Text className="text-white text-lg font-bold my-1">
+            Loading...
+          </Text>
+        </View>
+      )}
       {/* Header */}
       <View className="px-6 py-5 bg-primary border-b border-gray-200 shadow-sm">
         <View className="flex-row items-center pt-6 justify-center">
