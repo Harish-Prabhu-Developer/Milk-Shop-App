@@ -82,7 +82,7 @@ export const createOrder = async (req, res) => {
       title: "New Order Placed",
       message: `Order ${order.OrderId} has been placed successfully.`,
       type: "order",
-      userId: userId,
+      userId: order.Branch._id || order.Branch,
       orderId: order._id,
     });
 
@@ -138,7 +138,7 @@ export const ReOrder = async (req, res) => {
       title: "Re-Order Placed",
       message: `Re-Order ${newOrder.OrderId} has been placed successfully.`,
       type: "order",
-      userId: userId,
+      userId: newOrder.Branch._id || newOrder.Branch,
       orderId: newOrder._id,
     });
 
