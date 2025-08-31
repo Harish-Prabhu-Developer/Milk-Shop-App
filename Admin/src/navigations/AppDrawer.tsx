@@ -31,6 +31,7 @@ const AppDrawer = () => {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
+        drawerStatusBarAnimation: 'slide',
         drawerStyle: {
           backgroundColor: '#f9f9f9',
           borderTopRightRadius: '4%',

@@ -19,6 +19,7 @@ const TabBar = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        animation: 'shift',
       }}
       safeAreaInsets={{
         bottom: 10, // 👈 this replaces tabBarSafeAreaInsets

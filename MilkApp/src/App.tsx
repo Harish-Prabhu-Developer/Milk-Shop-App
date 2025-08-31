@@ -77,7 +77,7 @@ const App = () => {
           <SplashScreen />
         ) : (
           <Stack.Navigator
-            screenOptions={{ headerShown: false }}
+            screenOptions={{ headerShown: false ,animation: 'fade' }}
             initialRouteName={isLoggedIn ? 'TabBar' : 'LoginScreen'}
           >
             <Stack.Screen name="LoginScreen" component={LoginScreen} />

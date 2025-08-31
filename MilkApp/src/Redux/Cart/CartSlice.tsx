@@ -132,9 +132,7 @@ const CartSlice = createSlice({
     builder.addCase(addToCart.fulfilled, (state, action) => {
       state.loading = false;
       console.log('Add to Cart response : ', action.payload);
-      if (action.payload.msg === 'Product added to cart') {
-        state.Carts = action.payload.cart;
-      }
+     
     });
     builder.addCase(addToCart.rejected, (state, action) => {
       state.loading = false;

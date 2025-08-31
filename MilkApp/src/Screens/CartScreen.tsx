@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Image,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -27,22 +28,23 @@ const CartScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const dispatch = useDispatch<AppDispatch>();
   const cartData: CartProduct = useSelector((state: RootState) => state.Cart.Carts);
+  const {loading, error} = useSelector((state: RootState) => state.Cart);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(loading);
 
 
   const fetchProductsData = async () => {
-    setLoading(true);
+    setIsLoading(true);
         try {
           await dispatch(fetchCart()); // if using Redux thunk
           await new Promise((resolve) => setTimeout(resolve, 1000));
         } catch (error) {
           console.log('Error fetching Carts:', error);
         } finally {
-          setLoading(false);
+          setIsLoading(false);
         }
   };
 
@@ -154,8 +156,9 @@ const handleCheckout = async () => {
         btnColor="bg-red-600"
       />
 
+        
       <StatusBar barStyle="light-content" backgroundColor="#4F46E5" />
-
+      
       {/* Header */}
       <View className="bg-primary py-12 px-5 shadow-lg">
         <View className="flex-row justify-between items-center">
@@ -171,6 +174,7 @@ const handleCheckout = async () => {
 
       {/* Cart List */}
       <View className="flex-1 px-4 mt-4">
+        
         {cartData.items.length > 0 ? (
           <FlatList
             data={cartData.items}
