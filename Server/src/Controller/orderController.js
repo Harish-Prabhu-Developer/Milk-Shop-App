@@ -78,7 +78,7 @@ export const createOrder = async (req, res) => {
       message: `Order ${order.OrderId} has been placed successfully.`,
       type: "order",
       userId: userId,
-      orderId: order.OrderId,
+      orderId: order._id,
     });
 
     const fulneworder = await OrderModel.findById(order._id)
@@ -134,7 +134,7 @@ export const ReOrder = async (req, res) => {
       message: `Re-Order ${newOrder.OrderId} has been placed successfully.`,
       type: "order",
       userId: userId,
-      orderId: newOrder.OrderId,
+      orderId: newOrder._id,
     });
 
     const fulneworder = await OrderModel.findById(newOrder._id)
@@ -236,7 +236,7 @@ export const updateOrder = async (req, res) => {
         message: `Payment for order ${order.OrderId} was successful.`,
         type: "payment",
         userId: order.Branch._id || order.Branch,
-        orderId: order.OrderId,
+        orderId: order._id,
       });
     }
 
@@ -246,7 +246,7 @@ export const updateOrder = async (req, res) => {
         message: `Your order ${order.OrderId} has been delivered.`,
         type: "delivery",
         userId: order.Branch._id || order.Branch,
-        orderId: order.OrderId,
+        orderId: order._id,
       });
     } else if (order.OrderStatus === "Processing") {
       await createAndSendNotification({
@@ -254,7 +254,7 @@ export const updateOrder = async (req, res) => {
         message: `Your order ${order.OrderId} is being processed.`,
         type: "processing",
         userId: order.Branch._id || order.Branch,
-        orderId: order.OrderId,
+        orderId: order._id,
       });
     }
 
@@ -277,7 +277,7 @@ export const deleteOrder = async (req, res) => {
       message: `Order ${order.OrderId} has been cancelled.`,
       type: "order",
       userId: order.Branch._id || order.Branch,
-      orderId: order.OrderId,
+      orderId: order._id,
     });
 
 
