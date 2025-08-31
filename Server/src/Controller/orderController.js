@@ -1,8 +1,26 @@
-// controllers/orderController.js
+// Controller/orderController.js
 import CartModel from "../Model/CartModel.js";
 import NotificationModel from "../Model/NotificationModel.js";
 import OrderModel from "../Model/OrderModel.js";
+import { sendNotification } from "../Services/fcmService.js";
 
+// Helper to send both DB + FCM notifications
+const createAndSendNotification = async ({ title, message, type, userId, orderId }) => {
+  // Save notification in DB
+  await NotificationModel.create({
+    title,
+    message,
+    type,
+    user: userId,
+    order: orderId,
+  });
+
+  // Fetch branch to get fcmToken
+  const branch = await BranchModel.findById(userId);
+  if (branch?.fcmToken) {
+    await sendNotification(branch.fcmToken, title, message, { orderId });
+  }
+};
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -48,15 +66,14 @@ export const createOrder = async (req, res) => {
     cart.items = [];
     await cart.save();
 
-    // inside createOrder, just before sending res.json
-    await NotificationModel.create({
+    // ✅ Push + DB notification
+    await createAndSendNotification({
       title: "New Order Placed",
       message: `Order ${order.OrderId} has been placed successfully.`,
       type: "order",
-      user: userId,   // or order.Branch
-      order: order._id,
+      userId,
+      orderId: order._id,
     });
-
     const fulneworder = await OrderModel.findById(order._id)
       .populate("ProductData.product")
       .populate("Branch", "_id branchName email phone role");
@@ -104,12 +121,13 @@ export const ReOrder = async (req, res) => {
       ReceivedStatus: "Pending",
     });
 
-    await NotificationModel.create({
+    // ✅ Push + DB notification
+    await createAndSendNotification({
       title: "Re-Order Placed",
       message: `Re-Order ${newOrder.OrderId} has been placed successfully.`,
       type: "order",
-      user: userId,
-      order: newOrder._id,
+      userId,
+      orderId: newOrder._id,
     });
 
     const fulneworder = await OrderModel.findById(newOrder._id)
@@ -204,31 +222,32 @@ export const updateOrder = async (req, res) => {
     await order.save();
 
     // ✅ Notifications (deduplicated)
+    // ✅ Notifications
     if (order.PaymentStatus === "Completed") {
-      await NotificationModel.create({
+      await createAndSendNotification({
         title: "Payment Completed",
         message: `Payment for order ${order.OrderId} was successful.`,
         type: "payment",
-        user: order.Branch._id,
-        order: order._id,
+        userId: order.Branch._id,
+        orderId: order._id,
       });
     }
 
     if (order.OrderStatus === "Delivered") {
-      await NotificationModel.create({
+      await createAndSendNotification({
         title: "Order Delivered",
         message: `Your order ${order.OrderId} has been delivered.`,
         type: "delivery",
-        user: order.Branch._id,
-        order: order._id,
+        userId: order.Branch._id,
+        orderId: order._id,
       });
     } else if (order.OrderStatus === "Processing") {
-      await NotificationModel.create({
+      await createAndSendNotification({
         title: "Order Processing",
         message: `Your order ${order.OrderId} is being processed.`,
         type: "processing",
-        user: order.Branch._id,
-        order: order._id,
+        userId: order.Branch._id,
+        orderId: order._id,
       });
     }
 
@@ -245,13 +264,15 @@ export const deleteOrder = async (req, res) => {
     const { id } = req.params;
     const order = await OrderModel.findByIdAndDelete(id);
     if (!order) return res.status(404).json({ msg: "Order not found" });
-    await NotificationModel.create({
+    // ✅ Push + DB notification
+    await createAndSendNotification({
       title: "Order Cancelled",
       message: `Order ${order.OrderId} has been cancelled.`,
       type: "order",
-      user: order.Branch._id,
-      order: order._id,
+      userId: order.Branch._id,
+      orderId: order._id,
     });
+
 
     res.status(200).json({ msg: "Order deleted" });
   } catch (error) {

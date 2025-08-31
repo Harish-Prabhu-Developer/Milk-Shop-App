@@ -1,4 +1,4 @@
-// fcmService.js
+// Service/fcmService.js
 import admin from "../Config/firebaseConfig.js";
 
 // Send notification to a single device
