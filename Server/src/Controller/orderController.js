@@ -6,6 +6,7 @@ import OrderModel from "../Model/OrderModel.js";
 import { sendNotification } from "../Services/fcmService.js";
 
 // Helper to send both DB + FCM notifications
+// Helper to send both DB + FCM notifications
 const createAndSendNotification = async ({ title, message, type, userId, orderId }) => {
   // Save notification in DB
   await NotificationModel.create({
@@ -19,9 +20,13 @@ const createAndSendNotification = async ({ title, message, type, userId, orderId
   // Fetch branch to get fcmToken
   const branch = await BranchModel.findById(userId);
   if (branch?.fcmToken) {
-    await sendNotification(branch.fcmToken, title, message, { orderId });
+    await sendNotification(branch.fcmToken, title, message, { 
+      orderId: String(orderId),   // ✅ ensure string
+      type: String(type),         // ✅ ensure string
+    });
   }
 };
+
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user._id;
