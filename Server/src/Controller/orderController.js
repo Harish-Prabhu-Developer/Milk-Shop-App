@@ -67,13 +67,15 @@ export const createOrder = async (req, res) => {
     await cart.save();
 
     // ✅ Push + DB notification
-    await createAndSendNotification({
+    const notification = await createAndSendNotification({
       title: "New Order Placed",
       message: `Order ${order.OrderId} has been placed successfully.`,
       type: "order",
       userId,
       orderId: order._id,
     });
+    console.log("Notification Sent: ", notification);
+
     const fulneworder = await OrderModel.findById(order._id)
       .populate("ProductData.product")
       .populate("Branch", "_id branchName email phone role");

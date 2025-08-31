@@ -127,6 +127,8 @@ const CartScreen = () => {
 
 const handleCheckout = async () => {
  const res= await dispatch(CreateOrder());
+ console.log("Checkout Res : ",res);
+
  if (res.payload.msg==="Order created successfully") {
      Alert.alert('Order Placed', 'Your order has been placed successfully!', [
       { text: 'OK', onPress: () => navigation.navigate('TabBar') },
